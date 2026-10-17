@@ -1,0 +1,42 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Local environment variants and secrets
+.env.local
+.env.*.local
+
+# Generated logs and local files
+*.log
+nuxt-dev.out
+nuxt-dev.err
+package.json.backup
+
+# Local test/query scratch files
+test_query.txt
+test_query_minimal.txt
+test_query_simple.txt
+overpass_query.txt
+overpass_simple.txt

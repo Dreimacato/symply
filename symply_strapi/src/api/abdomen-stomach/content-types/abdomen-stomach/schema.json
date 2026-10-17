@@ -1,0 +1,133 @@
+{
+  "kind": "collectionType",
+  "collectionName": "abdomen_stomaches",
+  "info": {
+    "singularName": "abdomen-stomach",
+    "pluralName": "abdomen-stomaches",
+    "displayName": "Health Concern"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "bodymap": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "Body_Part": {
+      "type": "enumeration",
+      "enum": [
+        "Head",
+        "Neck",
+        "Chest",
+        "Abdomen/Stomach",
+        "Pelvis/Groin",
+        "Back",
+        "Shoulder",
+        "Arm",
+        "Hand",
+        "Buttock",
+        "Leg",
+        "Knee",
+        "Foot",
+        "Skin"
+      ]
+    },
+    "Anatomical_Area": {
+      "type": "enumeration",
+      "enum": [
+        "Brain",
+        "Eyes",
+        "Ears",
+        "Nose",
+        "Face",
+        "Mouth",
+        "Throat",
+        "Scalp",
+        "Front Neck",
+        "Back Neck",
+        "Thyroid Area",
+        "Heart Area",
+        "Lungs",
+        "Breast",
+        "Chest Wall",
+        "Upper Abdomen",
+        "Lower Abdomen",
+        "Right Abdomen",
+        "Left Abdomen",
+        "Bowel",
+        "Abdominal Skin",
+        "Pelvic Area",
+        "Groin",
+        "Genital Area",
+        "Rectal Area",
+        "Upper Back",
+        "Middle Back",
+        "Lower Back",
+        "Spine",
+        "Right Shoulder",
+        "Left Shoulder",
+        "Shoulder Join",
+        "Upper Arm",
+        "Elbow",
+        "Forearm",
+        "Wrist",
+        "Palm",
+        "Fingers",
+        "Thumb",
+        "Back of Hand",
+        "Fingernails",
+        "Right Buttock",
+        "Left Buttock",
+        "Gluteal Area",
+        "Thigh",
+        "Calf",
+        "Shin",
+        "Lower Leg",
+        "Kneecap",
+        "Knee Joint",
+        "Back of Knee",
+        "Ankle",
+        "Heel",
+        "Sole",
+        "Top of Foot",
+        "Toes",
+        "Toenails",
+        "General Skin",
+        "Rash Area",
+        "Wound Area",
+        "Mole / Lesion"
+      ]
+    },
+    "Symptom_Name": {
+      "type": "string"
+    },
+    "Description": {
+      "type": "text"
+    },
+    "Associated_Symptoms": {
+      "type": "text"
+    },
+    "Red_Flags_and_Warning_Signs": {
+      "type": "blocks"
+    },
+    "Initial_Management": {
+      "type": "blocks"
+    },
+    "When_to_Seek_Care": {
+      "type": "blocks"
+    },
+    "Triage_Criteria": {
+      "type": "component",
+      "component": "health.triage-criteria",
+      "repeatable": true
+    }
+  }
+}

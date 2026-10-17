@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_health_triage_criteria",
+  "info": {
+    "displayName": "Triage Criteria"
+  },
+  "options": {},
+  "attributes": {
+    "Condition": {
+      "type": "text"
+    },
+    "Triage_Level": {
+      "type": "enumeration",
+      "enum": [
+        "Emergency",
+        "Urgent",
+        "Non-Urgent"
+      ]
+    }
+  },
+  "config": {}
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ph-arayat-district-hospital",
+    "name": "Arayat District Hospital",
+    "type": "hospital",
+    "lat": 14.9706,
+    "lng": 120.8869,
+    "phone": "",
+    "website": "",
+    "address": "Arayat, Pampanga, Philippines",
+    "image": "/clinics/clinic-1.jfif",
+    "distanceMeters": 300
+  },
+  {
+    "id": "ph-jblmrh",
+    "name": "Jose B. Lingad Memorial Regional Hospital",
+    "type": "hospital",
+    "lat": 15.0333,
+    "lng": 120.6833,
+    "phone": "",
+    "website": "",
+    "address": "San Fernando, Pampanga, Philippines",
+    "image": "/clinics/clinic-2.jpg",
+    "distanceMeters": 15000
+  },
+  {
+    "id": "ph-medical-city-clark",
+    "name": "The Medical City Clark",
+    "type": "hospital",
+    "lat": 15.1867,
+    "lng": 120.5733,
+    "phone": "",
+    "website": "",
+    "address": "Clark Freeport Zone, Mabalacat, Pampanga, Philippines",
+    "image": "/clinics/clinic-3.jfif",
+    "distanceMeters": 24000
+  }
+]

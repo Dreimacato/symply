@@ -1,0 +1,10 @@
+@layer theme, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "preline/variants.css";
+
+@custom-variant dark (&:where(html[data-theme="dark"], html[data-theme="dark"] *));
+
+@source "../../pages/about.vue";
+@source "../../pages/index.vue";
