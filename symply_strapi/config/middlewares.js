@@ -1,3 +1,11 @@
+const allowedOrigins = (
+  process.env.CORS_ORIGINS ||
+  'http://localhost:3000,http://localhost:3001,http://localhost:1337'
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
 module.exports = [
   'strapi::logger',
   'strapi::errors',
@@ -6,7 +14,7 @@ module.exports = [
     name: 'strapi::cors',
     config: {
       enabled: true,
-      origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:1337'],
+      origin: allowedOrigins,
       credentials: true,
       headers: '*',
     },
