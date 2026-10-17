@@ -714,6 +714,7 @@ import { evaluateTriage } from '~/composables/useTriage'
 import type { FollowUpStep } from '~/composables/useFollowUpQuestions'
 
 const router = useRouter()
+const strapiBase = useRuntimeConfig().public.strapiBase as string
 const searchQuery = ref('')
 const showSuggestions = ref(false)
 /* Template ref for the search box container (used by "General Symptoms" to
@@ -788,7 +789,7 @@ const skinSymptoms = ref([])
 
 async function fetchSkinSymptoms() {
   try {
-    const response = await fetch('http://localhost:1337/api/abdomen-stomaches?filters[Body_Part][$eq]=Skin&pagination[limit]=100&populate=*')
+    const response = await fetch(`${strapiBase}/api/abdomen-stomaches?filters[Body_Part][$eq]=Skin&pagination[limit]=100&populate=*`)
     if (!response.ok) { console.error('Failed to fetch skin symptoms:', response.statusText); skinSymptoms.value = []; return }
     const data = await response.json()
     skinSymptoms.value = (data.data || []).map(item => ({
@@ -882,7 +883,7 @@ const searchLoading = ref(false)
 async function fetchAllSymptoms() {
   try {
     searchLoading.value = true
-    const response = await fetch('http://localhost:1337/api/abdomen-stomaches?pagination[limit]=1000')
+    const response = await fetch(`${strapiBase}/api/abdomen-stomaches?pagination[limit]=1000`)
     if (!response.ok) { console.error('Failed to fetch symptoms:', response.statusText); allSymptoms.value = []; return }
     const data = await response.json()
     if (!data.data || data.data.length === 0) { allSymptoms.value = []; return }
@@ -915,7 +916,7 @@ const searchSuggestions = computed(() => {
 async function addFromSearch(symptom) {
   // Fetch full details for the selected symptom
   try {
-    const response = await fetch(`http://localhost:1337/api/abdomen-stomaches?filters[Symptom_Name][$eq]=${encodeURIComponent(symptom.name)}&pagination[limit]=1&populate=*`)
+    const response = await fetch(`${strapiBase}/api/abdomen-stomaches?filters[Symptom_Name][$eq]=${encodeURIComponent(symptom.name)}&pagination[limit]=1&populate=*`)
     if (response.ok) {
       const data = await response.json()
       if (data.data && data.data.length > 0) {
@@ -956,7 +957,7 @@ async function addFromSearch(symptom) {
 /* ── Body region drawers ── */
 async function fetchHeadSymptoms() {
   try {
-    const response = await fetch('http://localhost:1337/api/abdomen-stomaches?filters[Body_Part][$eq]=Head&pagination[limit]=100&populate=*')
+    const response = await fetch(`${strapiBase}/api/abdomen-stomaches?filters[Body_Part][$eq]=Head&pagination[limit]=100&populate=*`)
     if (!response.ok) { console.error('Failed to fetch head symptoms:', response.statusText); headSymptoms.value = []; return }
     const data = await response.json()
     headSymptoms.value = (data.data || []).map(item => ({
@@ -976,7 +977,7 @@ async function fetchHeadSymptoms() {
 
 async function fetchFrontSymptoms(bodyPart) {
   try {
-    const response = await fetch(`http://localhost:1337/api/abdomen-stomaches?filters[Body_Part][$eq]=${encodeURIComponent(bodyPart)}&pagination[limit]=100&populate=*`)
+    const response = await fetch(`${strapiBase}/api/abdomen-stomaches?filters[Body_Part][$eq]=${encodeURIComponent(bodyPart)}&pagination[limit]=100&populate=*`)
     if (!response.ok) { console.error(`Failed to fetch ${bodyPart} symptoms:`, response.statusText); frontSymptoms.value = []; return }
     const data = await response.json()
     frontSymptoms.value = (data.data || []).map(item => ({
@@ -996,7 +997,7 @@ async function fetchFrontSymptoms(bodyPart) {
 
 async function fetchBackSymptoms(bodyPart) {
   try {
-    const response = await fetch(`http://localhost:1337/api/abdomen-stomaches?filters[Body_Part][$eq]=${encodeURIComponent(bodyPart)}&pagination[limit]=100&populate=*`)
+    const response = await fetch(`${strapiBase}/api/abdomen-stomaches?filters[Body_Part][$eq]=${encodeURIComponent(bodyPart)}&pagination[limit]=100&populate=*`)
     if (!response.ok) { console.error(`Failed to fetch ${bodyPart} symptoms:`, response.statusText); backSymptoms.value = []; return }
     const data = await response.json()
     backSymptoms.value = (data.data || []).map(item => ({
@@ -1024,7 +1025,7 @@ const selectedGeneralSymptomId = ref(null)
 
 async function fetchGeneralSymptoms() {
   try {
-    const response = await fetch('http://localhost:1337/api/abdomen-stomaches?pagination[limit]=1000&populate=*')
+    const response = await fetch(`${strapiBase}/api/abdomen-stomaches?pagination[limit]=1000&populate=*`)
     if (!response.ok) {
       console.error('Failed to fetch general symptoms:', response.statusText)
       generalSymptoms.value = []
