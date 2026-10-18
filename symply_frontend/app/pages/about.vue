@@ -12,10 +12,10 @@
 
         <section class="space-y-4 py-2">
           <h1 class="m-0 text-4xl font-semibold tracking-normal text-[var(--symply-text-primary)]">Who We Are</h1>
-          <p class="max-w-4xl text-base leading-7 text-[var(--symply-text-secondary)]">
+          <p class="max-w-4xl text-justify text-base leading-7 text-[var(--symply-text-secondary)]">
             Symply is a healthcare navigation tool designed to help individuals better understand their health concerns and find appropriate healthcare services. Through an interactive body map, users can explore symptoms based on specific body areas, access relevant health information, and discover possible next steps based on their reported concerns.
           </p>
-          <p class="max-w-4xl text-base leading-7 text-[var(--symply-text-secondary)]">
+          <p class="max-w-4xl text-justify text-base leading-7 text-[var(--symply-text-secondary)]">
             Recognizing that navigating health information and locating appropriate healthcare services can sometimes be challenging, Symply aims to provide a more accessible and user-friendly way for individuals to explore their concerns and become better informed about their healthcare options.
           </p>
         </section>
@@ -23,13 +23,13 @@
         <section class="grid divide-y divide-[var(--symply-border)] border-y border-[var(--symply-border)] md:grid-cols-2 md:divide-x md:divide-y-0">
           <article class="space-y-3 py-6 md:pr-8">
             <h2 class="m-0 text-2xl font-semibold tracking-normal text-[var(--symply-text-primary)]">Our Mission</h2>
-            <p class="text-base leading-7 text-[var(--symply-text-secondary)]">
+            <p class="text-justify text-base leading-7 text-[var(--symply-text-secondary)]">
               Symply aims to develop a simple and user-friendly healthcare navigation tool that connects individuals' reported symptoms with appropriate healthcare services and available local health resources.
             </p>
           </article>
           <article class="space-y-3 py-6 md:pl-8">
             <h2 class="m-0 text-2xl font-semibold tracking-normal text-[var(--symply-text-primary)]">Our Vision</h2>
-            <p class="text-base leading-7 text-[var(--symply-text-secondary)]">
+            <p class="text-justify text-base leading-7 text-[var(--symply-text-secondary)]">
               Symply envisions a healthcare environment where individuals can easily understand their health concerns and confidently navigate toward appropriate and accessible healthcare services.
             </p>
           </article>
@@ -38,20 +38,20 @@
         <section class="space-y-5">
           <h2 class="m-0 text-2xl font-semibold tracking-normal text-[var(--symply-text-primary)]">What We Offer</h2>
           <ul class="grid list-none gap-3 p-0 sm:grid-cols-2">
-            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Interactive Body Map</strong><span class="offer-description text-sm leading-6 text-[var(--symply-text-secondary)]">Allows users to select specific body areas and explore related symptoms.</span></li>
-            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Symptom Information</strong><span class="offer-description text-sm leading-6 text-[var(--symply-text-secondary)]">Provides descriptions, associated symptoms, and relevant warning signs to help users better understand their concerns.</span></li>
-            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Assessment and Guidance</strong><span class="offer-description text-sm leading-6 text-[var(--symply-text-secondary)]">Guides users through relevant assessment questions and presents an urgency result based on the system's implemented assessment rules.</span></li>
-            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Self-Care Information</strong><span class="offer-description text-sm leading-6 text-[var(--symply-text-secondary)]">Presents general initial management guidance and information about when to seek professional care.</span></li>
-            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4 sm:col-span-2"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Healthcare Navigation</strong><span class="offer-description text-sm leading-6 text-[var(--symply-text-secondary)]">Helps users locate nearby healthcare facilities and explore available options for further assistance.</span></li>
+            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Interactive Body Map</strong><span class="offer-description block text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">Allows users to select specific body areas and explore related symptoms.</span></li>
+            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Symptom Information</strong><span class="offer-description block text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">Provides descriptions, associated symptoms, and relevant warning signs to help users better understand their concerns.</span></li>
+            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Assessment and Guidance</strong><span class="offer-description block text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">Guides users through relevant assessment questions and presents an urgency result based on the system's implemented assessment rules.</span></li>
+            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Self-Care Information</strong><span class="offer-description block text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">Presents general initial management guidance and information about when to seek professional care.</span></li>
+            <li class="rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4 sm:col-span-2"><strong class="mb-1 block text-sm font-semibold text-[var(--symply-text-primary)]">Healthcare Navigation</strong><span class="offer-description block text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">Helps users locate nearby healthcare facilities and explore available options for further assistance.</span></li>
           </ul>
         </section>
 
         <section class="space-y-4 border-t border-[var(--symply-border)] pt-8">
           <h2 class="m-0 text-2xl font-semibold tracking-normal text-[var(--symply-text-primary)]">Our Commitment</h2>
-          <p class="max-w-4xl text-base leading-7 text-[var(--symply-text-secondary)]">
+          <p class="max-w-4xl text-justify text-base leading-7 text-[var(--symply-text-secondary)]">
             We are committed to making health information easier to access, understand, and navigate. Through a clear and user-friendly platform, Symply aims to help individuals become more informed about their health concerns and available healthcare resources.
           </p>
-          <p class="max-w-4xl text-base leading-7 text-[var(--symply-text-secondary)]">
+          <p class="max-w-4xl text-justify text-base leading-7 text-[var(--symply-text-secondary)]">
             We also recognize the importance of responsible health communication. The information presented through Symply should support informed healthcare decisions without replacing professional evaluation or medical advice.
           </p>
         </section>
@@ -64,7 +64,6 @@
           <div class="team-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <article v-for="member in teamMembers" :key="member.id" class="team-member-block group relative z-0 min-w-0 rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4 shadow-sm transition hover:z-20 hover:-translate-y-0.5 hover:shadow-md focus-within:z-20">
               <h3 class="m-0 text-base font-semibold leading-snug text-[var(--symply-text-primary)]">{{ member.name }}</h3>
-              <p class="team-member-role mt-1 text-xs text-[var(--symply-text-muted)]">{{ member.role }}</p>
 
               <div
                 class="team-photo-wrap relative mx-auto w-full max-w-60"
@@ -96,9 +95,10 @@
                   >
                     <header class="mb-3 border-b border-[var(--symply-border)] pb-3">
                       <p class="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--symply-primary)]">Biography</p>
+                      <h3 class="m-0 text-base font-semibold leading-snug text-[var(--symply-text-primary)]">{{ member.name }}</h3>
                     </header>
-                    <div class="team-bio-content">
-                      <p v-for="(paragraph, index) in member.bio" :key="index" class="text-sm leading-6 text-[var(--symply-text-secondary)]">{{ paragraph }}</p>
+                    <div class="team-bio-content text-justify">
+                      <p v-for="(paragraph, index) in member.bio" :key="index" class="text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">{{ paragraph }}</p>
                     </div>
                   </section>
                 </Transition>
@@ -109,7 +109,7 @@
 
         <section class="space-y-3 border-t border-slate-200 pt-8 dark:border-slate-800">
           <h2 class="m-0 text-xl font-semibold tracking-normal text-slate-900 dark:text-white">Important Disclaimer</h2>
-          <p class="max-w-4xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+          <p class="max-w-4xl text-justify text-sm leading-6 text-slate-500 dark:text-slate-400">
             Symply provides general health information and guidance for educational purposes.
             It does not replace professional medical advice, diagnosis, or treatment.
             Assessment results should not be considered a definitive medical diagnosis.
@@ -134,17 +134,15 @@ const teamMembers = [
   {
     id: 'jean',
     name: 'Jean Arren S. Pangan',
-    role: 'Project Leader & Website Developer',
     photo: '/team/jean-arren-pangan.png',
     bio: [
-      `I am the project leader and website developer of Symply, where I help bring our ideas to life through website development, interface design, and creative problem-solving. I enjoy exploring how technology and healthcare can work together to create something useful and meaningful for the community.`,
+      `I am part of Symply, where I help bring our ideas to life through website development, interface design, and creative problem-solving. I enjoy exploring how technology and healthcare can work together to create something useful and meaningful for the community.`,
       `Outside academics and project work, I enjoy graphic design, digital art, listening to music, playing video games, and exploring different fragrances. I am also a self-proclaimed clean freak who enjoys keeping things neat, clean, and organized. I always look forward to learning new things, exploring my interests, and finding ways to improve my skills.`,
     ],
   },
   {
     id: 'john-paul',
     name: 'John Paul Q. Guinto',
-    role: 'Symply Team Member',
     photo: '/team/john-paul-guinto.png',
     bio: [
       `I am a nursing student who enjoys designing and organizing things, especially when it comes to academic work. I love exploring new ideas, learning new skills, and discovering opportunities that help me grow both personally and academically.`,
@@ -154,7 +152,6 @@ const teamMembers = [
   {
     id: 'helary-joy',
     name: 'Helary Joy B. Canilao',
-    role: 'Symply Team Member',
     photo: '/team/helary-joy-canilao.png',
     photoPosition: 'center',
     bio: [
@@ -165,7 +162,6 @@ const teamMembers = [
   {
     id: 'larissa',
     name: 'Larissa Ann Juliette C. Garcia',
-    role: 'Symply Team Member',
     photo: '/team/larissa-ann-juliette-garcia.png',
     bio: [
       `As someone who considers herself an empath, I have always wanted to help people feel heard, understood, and less alone. I believe that caring goes beyond treating illnesses; it also means providing comfort, understanding, and guidance.`,
@@ -175,7 +171,6 @@ const teamMembers = [
   {
     id: 'erica-mae',
     name: 'Erica Mae G. Marcelo',
-    role: 'Symply Team Member',
     photo: '/team/erica-mae-marcelo.png',
     bio: [
       `I am a nursing student with interests that extend beyond healthcare, particularly in graphic layout design, writing, and makeup. I enjoy exploring creative ideas, developing visual concepts, and expressing myself through design and words.`,
@@ -185,7 +180,6 @@ const teamMembers = [
   {
     id: 'frances-mikaela',
     name: 'Frances Mikaela C. Santos',
-    role: 'Symply Team Member',
     photo: '/team/frances-mikaela-santos.png',
     bio: [
       `I’m a nursing student with a love for literature, film, and understanding the human experience. I enjoy reading classic literature and annotating the pages with my thoughts, as well as watching films and writing essays about them on my Substack account.`,
@@ -277,6 +271,8 @@ useHead({
 
 .team-bio-content p {
   margin: 0;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .team-bio-content p + p {

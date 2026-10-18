@@ -434,6 +434,17 @@ const overallTriageLevel = computed(() => {
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.section-text p,
+.section-text li,
+.triage-reason,
+.triage-detail-value,
+.triage-next-step {
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 /* ─── Empty State ───────────────────────────────────────────────────────────── */

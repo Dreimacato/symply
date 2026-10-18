@@ -422,6 +422,8 @@ onMounted(() => {
   color: var(--symply-text-secondary);
   font-size: 1rem;
   margin: 0 0 32px 0;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 /* ─── Location Section ──────────────────────────────────────────────────────── */
@@ -481,6 +483,8 @@ onMounted(() => {
   margin: -4px 0 20px;
   color: var(--symply-text-secondary);
   line-height: 1.6;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .doctor-search-button {
@@ -563,6 +567,8 @@ onMounted(() => {
 
 .doctor-list-detail {
   color: var(--symply-text-secondary);
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .doctor-list-detail a {
