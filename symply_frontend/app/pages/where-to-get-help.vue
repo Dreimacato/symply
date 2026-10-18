@@ -73,23 +73,27 @@
                   <v-icon icon="mdi-stethoscope" size="22" color="#06B6D4" aria-hidden="true" />
                 </div>
                 <div class="doctor-list-info">
-                  <h3 class="facility-list-name">{{ doctor.name }}</h3>
+                  <h3 class="facility-list-name doctor-list-name">{{ doctor.name }}</h3>
                   <p class="doctor-list-source">Doctor listing · OpenStreetMap</p>
-                  <p v-if="doctor.address" class="doctor-list-detail">
-                    <v-icon icon="mdi-map-marker-outline" size="15" aria-hidden="true" />
-                    {{ doctor.address }}
-                  </p>
-                  <p v-if="doctor.phone" class="doctor-list-detail">
-                    <v-icon icon="mdi-phone-outline" size="15" aria-hidden="true" />
-                    <a :href="phoneHref(doctor.phone)">{{ doctor.phone }}</a>
-                  </p>
-                  <p v-if="safeWebsite(doctor.website)" class="doctor-list-detail">
-                    <v-icon icon="mdi-web" size="15" aria-hidden="true" />
-                    <a :href="safeWebsite(doctor.website)" target="_blank" rel="noopener noreferrer">Visit website</a>
-                  </p>
-                  <p v-if="typeof doctor.distanceMeters === 'number'" class="doctor-list-distance">
-                    {{ formatDistance(doctor.distanceMeters) }}
-                  </p>
+                  <div class="doctor-list-meta">
+                    <p v-if="doctor.address" class="doctor-list-detail doctor-list-location">
+                      <v-icon icon="mdi-map-marker-outline" size="15" aria-hidden="true" />
+                      <span>{{ doctor.address }}</span>
+                    </p>
+                    <p v-if="typeof doctor.distanceMeters === 'number'" class="doctor-list-distance">
+                      {{ formatDistance(doctor.distanceMeters) }}
+                    </p>
+                  </div>
+                  <div v-if="doctor.phone || safeWebsite(doctor.website)" class="doctor-list-actions">
+                    <a v-if="doctor.phone" class="doctor-list-action" :href="phoneHref(doctor.phone)">
+                      <v-icon icon="mdi-phone-outline" size="15" aria-hidden="true" />
+                      <span>{{ doctor.phone }}</span>
+                    </a>
+                    <a v-if="safeWebsite(doctor.website)" class="doctor-list-action" :href="safeWebsite(doctor.website)" target="_blank" rel="noopener noreferrer">
+                      <v-icon icon="mdi-web" size="15" aria-hidden="true" />
+                      <span>Visit website</span>
+                    </a>
+                  </div>
                 </div>
               </article>
             </div>
@@ -525,9 +529,9 @@ onMounted(() => {
 
 .doctor-list-item {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
   border: 1px solid var(--symply-border);
   border-radius: var(--symply-radius-md);
   background: var(--symply-card-bg);
@@ -535,50 +539,113 @@ onMounted(() => {
 
 .doctor-list-icon {
   display: flex;
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   align-items: center;
+  align-self: center;
   justify-content: center;
   border-radius: var(--symply-radius-md);
   background: var(--symply-primary-light);
 }
 
 .doctor-list-info {
+  display: flex;
   min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doctor-list-name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .doctor-list-source,
 .doctor-list-detail,
 .doctor-list-distance {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 4px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .doctor-list-source {
+  margin: 0;
   color: var(--symply-text-muted);
-  font-size: 0.8125rem;
+}
+
+.doctor-list-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
 }
 
 .doctor-list-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
   color: var(--symply-text-secondary);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: left;
 }
 
-.doctor-list-detail a {
+.doctor-list-detail .v-icon,
+.doctor-list-action .v-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.doctor-list-location span {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.doctor-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 6px;
+}
+
+.doctor-list-action {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: var(--symply-primary);
+  text-decoration: none;
   overflow-wrap: anywhere;
 }
 
+.doctor-list-action:hover {
+  text-decoration: underline;
+}
+
 .doctor-list-distance {
+  margin: 0;
   color: var(--symply-text-muted);
-  font-size: 0.8125rem;
+}
+
+@media (max-width: 480px) {
+  .doctor-list-item {
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .doctor-list-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
 }
 
 .doctor-results-state {
