@@ -283,6 +283,23 @@ function goToSymptoms() {
 }
 
 function goToWhereToGetHelp() {
+  /* Warm the page-4 facility search while navigating: geocode (cached) then
+     prefetch nearby facilities so Where To Get Help opens with data ready. */
+  try {
+    const raw = sessionStorage.getItem('symply_user_info')
+    const addr = raw ? (JSON.parse(raw)?.address || '').trim() : ''
+    if (addr) {
+      const { geocodeAddress, fetchNearbyFacilities } = useHealthMap()
+      geocodeAddress(addr)
+        .then((geo) => {
+          if (geo) return fetchNearbyFacilities(geo.lat, geo.lng, 5000).catch(() => {})
+          return null
+        })
+        .catch(() => {})
+    }
+  } catch (e) {
+    /* Prefetch is best-effort only — navigation always proceeds */
+  }
   router.push('/where-to-get-help')
 }
 

@@ -13,6 +13,13 @@ export const NEARBY_RADIUS_METERS = 5000
 /* Max facilities rendered on the map â€” keeps large cities usable */
 const NEARBY_RESULT_LIMIT = 60
 
+/* Speed: fast 2 km query (8 s client timeout) answers dense areas quickly.
+   The full 5 km radius is only used as a widened second attempt (12 s). */
+const OVERPASS_FAST_TIMEOUT_MS = 8000
+const OVERPASS_FULL_TIMEOUT_MS = 12000
+const FAST_RADIUS_METERS = 2000
+const FAST_MIN_RESULTS = 5
+
 /* Nominatim's fair-use policy allows at most 1 request per second.
    Reserve a slot before every request so rapid typing or automated
    tests can never burst the endpoint. Cached results skip the slot. */
@@ -102,6 +109,45 @@ const geocodeCache = new Map()
 
 /* Facilities cache for Overpass API responses */
 const facilitiesCache = new Map()
+
+/* Persist successful Overpass results in localStorage so revisits and
+   reloads near the same area are instant (24 h TTL, max 20 areas). */
+const FACILITIES_LS_KEY = 'symply_facilities_cache_v1'
+const FACILITIES_LS_TTL_MS = 86400000
+const FACILITIES_LS_MAX = 20
+let facilitiesLsCache = null
+function readFacilitiesLsCache() {
+  if (process.server) return new Map()
+  try {
+    const raw = localStorage.getItem(FACILITIES_LS_KEY)
+    if (!raw) return new Map()
+    const parsed = JSON.parse(raw)
+    const map = new Map()
+    const now = Date.now()
+    const entries = Object.entries(parsed || {})
+    for (let i = 0; i < entries.length; i++) {
+      const k = entries[i][0]
+      const e = entries[i][1]
+      if (e && Array.isArray(e.value) && (now - e.savedAt) < FACILITIES_LS_TTL_MS) map.set(k, e.value)
+    }
+    return map
+  } catch (err) { return new Map() }
+}
+function getFacilitiesLsCache() {
+  if (!facilitiesLsCache) facilitiesLsCache = readFacilitiesLsCache()
+  return facilitiesLsCache
+}
+function writeFacilitiesLsCache(cacheKey, facilities) {
+  if (process.server) return
+  try {
+    const cache = getFacilitiesLsCache()
+    cache.set(cacheKey, facilities)
+    while (cache.size > FACILITIES_LS_MAX) cache.delete(cache.keys().next().value)
+    const obj = {}
+    cache.forEach((v, k) => { obj[k] = { savedAt: Date.now(), value: v } })
+    localStorage.setItem(FACILITIES_LS_KEY, JSON.stringify(obj))
+  } catch (err) { /* memory cache still applies */ }
+}
 
 /* Local fixture loader â€” only used when SYMPY_USE_FIXTURE=1 for local dev */
 let fixtureFacilities: any[] = []
@@ -257,19 +303,51 @@ export function useHealthMap() {
     return facilitiesCache.get(cacheKey)
   }
 
-  const query = `
-    [out:json][timeout:25];
-    (
-      node["amenity"~"^(hospital|clinic|doctors)$"](around:${radiusMeters},${lat},${lng});
-      way["amenity"~"^(hospital|clinic|doctors)$"](around:${radiusMeters},${lat},${lng});
-      node["healthcare"~"^(hospital|clinic|doctor|centre)$"](around:${radiusMeters},${lat},${lng});
-      way["healthcare"~"^(hospital|clinic|doctor|centre)$"](around:${radiusMeters},${lat},${lng});
-    );
-    out center ${NEARBY_RESULT_LIMIT};
-  `
+  if (getFacilitiesLsCache().has(cacheKey)) {
+    const cached = getFacilitiesLsCache().get(cacheKey)
+    facilitiesCache.set(cacheKey, cached)
+    refreshFacilitiesInBackground(lat, lng, radiusMeters, cacheKey)
+    return cached
+  }
 
+  const fastRadius = Math.min(FAST_RADIUS_METERS, radiusMeters)
   searchingFacilities.value = true
   try {
+    let fastData = null
+    try {
+      fastData = await queryOverpassFast(buildOverpassQuery(lat, lng, fastRadius), OVERPASS_FAST_TIMEOUT_MS)
+    } catch (err) {
+      console.warn('[useHealthMap] Fast query failed, trying full radius')
+    }
+    const fastCount = fastData && fastData.elements ? fastData.elements.length : 0
+    if (fastData && (fastCount >= FAST_MIN_RESULTS || fastRadius >= radiusMeters)) {
+      const facilities = normalizeFacilities(fastData, lat, lng)
+      facilitiesCache.set(cacheKey, facilities)
+      writeFacilitiesLsCache(cacheKey, facilities)
+      return facilities
+    }
+    const fullData = await queryOverpassFast(buildOverpassQuery(lat, lng, radiusMeters), OVERPASS_FULL_TIMEOUT_MS)
+    const facilities = normalizeFacilities(fullData, lat, lng)
+    facilitiesCache.set(cacheKey, facilities)
+    writeFacilitiesLsCache(cacheKey, facilities)
+    return facilities
+  } finally {
+    searchingFacilities.value = false
+  }
+}
+
+  function buildOverpassQuery(qlat, qlng, qradius) {
+    return (
+      '[out:json][timeout:12];' +
+      '(node["amenity"~"^(hospital|clinic|doctors)$"](around:' + qradius + ',' + qlat + ',' + qlng + ');' +
+      'way["amenity"~"^(hospital|clinic|doctors)$"](around:' + qradius + ',' + qlat + ',' + qlng + ');' +
+      'node["healthcare"~"^(hospital|clinic|doctor|centre)$"](around:' + qradius + ',' + qlat + ',' + qlng + ');' +
+      'way["healthcare"~"^(hospital|clinic|doctor|centre)$"](around:' + qradius + ',' + qlat + ',' + qlng + '););' +
+      'out center ' + NEARBY_RESULT_LIMIT + ';'
+    )
+  }
+
+  async function queryOverpassFast(query, timeoutMs) {
     /* Race every Overpass endpoint in parallel and take the first one that
        answers with usable data. Each request is bounded by an AbortController
        timeout, so a single slow/hanging endpoint (a 504 or a socket that never
@@ -277,7 +355,7 @@ export function useHealthMap() {
        keep racing and the losers are aborted. This turns the old sequential
        failover (worst case = the *sum* of every timeout) into "fastest healthy
        endpoint wins", which is why the map used to take 8â€“40 s+ to load. */
-    const OVERPASS_TIMEOUT_MS = 15000
+    const OVERPASS_TIMEOUT_MS = timeoutMs
 
     const attemptEndpoint = async (endpoint) => {
       const controller = new AbortController()
@@ -327,7 +405,21 @@ export function useHealthMap() {
     if (!data) {
       throw lastError || new Error('Nearby facilities request failed')
     }
+    return data
+  }
 
+  function refreshFacilitiesInBackground(rlat, rlng, rradius, rkey) {
+    Promise.resolve()
+      .then(() => queryOverpassFast(buildOverpassQuery(rlat, rlng, rradius), OVERPASS_FULL_TIMEOUT_MS))
+      .then((fresh) => {
+        const facilities = normalizeFacilities(fresh, rlat, rlng)
+        facilitiesCache.set(rkey, facilities)
+        writeFacilitiesLsCache(rkey, facilities)
+      })
+      .catch(() => { /* keep serving cached copy */ })
+  }
+
+  function normalizeFacilities(data, nlat, nlng) {
     const seen = new Set()
     const facilities = []
 
@@ -377,19 +469,13 @@ export function useHealthMap() {
         phone: (tags.phone || tags['contact:phone'] || '').trim(),
         website: (tags.website || tags['contact:website'] || '').trim(),
         address: address.trim(),
-        distanceMeters: haversineMeters(lat, lng, elat, elng)
+        distanceMeters: haversineMeters(nlat, nlng, elat, elng)
       })
     }
 
     facilities.sort((a, b) => a.distanceMeters - b.distanceMeters)
-
-    /* Cache successful responses (including empty results for this area) */
-    facilitiesCache.set(cacheKey, facilities)
     return facilities
-  } finally {
-    searchingFacilities.value = false
   }
-}
 
   return {
     geocoding,
