@@ -8,3 +8,15 @@
 
 @source "../../pages/about.vue";
 @source "../../pages/index.vue";
+
+.symply-main p:not(.text-center):not(.empty-text):not(.empty-state-text):not(.no-facilities-text):not(.loading-text),
+.symply-main .text-body-1,
+.symply-main .text-body-2,
+.symply-main .text-subtitle-1.text-medium-emphasis,
+.symply-main .text-caption.text-medium-emphasis,
+.symply-main .section-text,
+.symply-main .triage-reason,
+.symply-main .triage-detail-value,
+.symply-main .offer-description {
+	text-align: justify;
+}

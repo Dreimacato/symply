@@ -49,7 +49,7 @@
             </v-avatar>
             <div>
               <div class="text-subtitle-1 font-weight-bold">{{ area.label }}</div>
-              <div class="text-caption text-medium-emphasis">{{ area.description }}</div>
+              <div class="area-description text-caption text-medium-emphasis">{{ area.description }}</div>
             </div>
           </div>
 
