@@ -38,6 +38,56 @@
           </template>
         </ClientOnly>
 
+        <section class="doctor-search-section" aria-labelledby="doctor-search-title">
+          <h2 id="doctor-search-title" class="section-title">Find a Doctor</h2>
+          <p class="doctor-search-description">
+            Search for nearby doctors and specialists on Google Maps, where listings may include contact details.
+            Symply does not fetch or verify these listings.
+          </p>
+
+          <form class="doctor-search-form" @submit.prevent="searchDoctors">
+            <div class="doctor-search-field">
+              <label for="doctor-search-location">Location</label>
+              <input
+                id="doctor-search-location"
+                v-model="doctorLocation"
+                type="text"
+                autocomplete="address-level2"
+                placeholder="City, municipality, or address"
+                :aria-invalid="doctorSearchAttempted && !doctorLocation.trim()"
+                :aria-describedby="doctorSearchAttempted && !doctorLocation.trim() ? 'doctor-search-error' : undefined"
+                @input="doctorSearchAttempted = false"
+              />
+            </div>
+
+            <div class="doctor-search-field">
+              <label for="doctor-search-specialty">Specialty</label>
+              <select id="doctor-search-specialty" v-model="doctorSpecialty">
+                <option v-for="specialty in doctorSpecialties" :key="specialty.value" :value="specialty.value">
+                  {{ specialty.label }}
+                </option>
+              </select>
+            </div>
+
+            <button class="doctor-search-button" type="submit">
+              <v-icon icon="mdi-open-in-new" size="18" aria-hidden="true" />
+              Search Doctors
+            </button>
+          </form>
+
+          <p
+            v-if="doctorSearchAttempted && !doctorLocation.trim()"
+            id="doctor-search-error"
+            class="doctor-search-error"
+            role="alert"
+          >
+            Enter a city, municipality, or address to search for doctors nearby.
+          </p>
+          <p class="doctor-search-note">
+            Google Maps opens in a new tab. Availability and contact information depend on its listings.
+          </p>
+        </section>
+
         <!-- Nearby Hospitals & Clinics List -->
         <div v-if="loading" class="loading-section">
           <ClientOnly>
@@ -189,6 +239,22 @@ import { evaluateTriage, getTriageColor } from '~/composables/useTriage'
 
 const router = useRouter()
 const userLocation = ref(null)
+const doctorLocation = ref('')
+const doctorSpecialty = ref('doctors')
+const doctorSearchAttempted = ref(false)
+const doctorSpecialties = [
+  { label: 'General doctors', value: 'doctors' },
+  { label: 'General practitioners', value: 'general practitioners' },
+  { label: 'Pediatricians', value: 'pediatricians' },
+  { label: 'Dermatologists', value: 'dermatologists' },
+  { label: 'Cardiologists', value: 'cardiologists' },
+  { label: 'Dentists', value: 'dentists' },
+  { label: 'OB-GYNs', value: 'ob-gyns' },
+  { label: 'Orthopedic specialists', value: 'orthopedic specialists' },
+  { label: 'Ophthalmologists', value: 'ophthalmologists' },
+  { label: 'Neurologists', value: 'neurologists' },
+  { label: 'Psychiatrists', value: 'psychiatrists' },
+]
 /* Exact coordinates saved by the Info page's autocomplete (null when unavailable) */
 const userCoords = ref({ lat: null, lng: null })
 const facilities = ref([])
@@ -203,6 +269,19 @@ const FIXED_CONTACT_NUMBER = '911'
 const showSummary = ref(false)
 const summaryProfile = ref({ age: '', sex: '', location: '' })
 const summarySymptoms = ref([])
+
+function searchDoctors() {
+  const location = doctorLocation.value.trim()
+  doctorSearchAttempted.value = true
+  if (!location) return
+
+  const params = new URLSearchParams({
+    api: '1',
+    query: `${doctorSpecialty.value} near ${location}`,
+  })
+  const searchUrl = `https://www.google.com/maps/search/?${params.toString()}`
+  window.open(searchUrl, '_blank', 'noopener,noreferrer')
+}
 
 /* Triage badge tint keyed off the level, mirroring what-you-can-do.vue */
 function getTriageTint(level) {
@@ -274,6 +353,7 @@ function finishAndReset() {
 async function loadUserProfile() {
   try {
     userLocation.value = localStorage.getItem('symply_user_address')
+    doctorLocation.value = userLocation.value || ''
 
     // Read coordinates saved by the Info page's autocomplete (if any)
     const rawLat = Number(localStorage.getItem('symply_user_lat'))
@@ -386,6 +466,93 @@ onMounted(() => {
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
+}
+
+/* ─── Find a Doctor ──────────────────────────────────────────────────────────── */
+.doctor-search-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--symply-card-bg);
+  border: 1px solid var(--symply-border);
+  border-radius: var(--symply-radius-lg);
+  box-shadow: var(--symply-shadow-sm);
+}
+
+.doctor-search-description {
+  margin: -4px 0 20px;
+  color: var(--symply-text-secondary);
+  line-height: 1.6;
+}
+
+.doctor-search-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+}
+
+.doctor-search-field {
+  min-width: 0;
+}
+
+.doctor-search-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--symply-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.doctor-search-field input,
+.doctor-search-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--symply-border);
+  border-radius: var(--symply-radius-md);
+  background: var(--symply-card-bg);
+  color: var(--symply-text-primary);
+  font: inherit;
+}
+
+.doctor-search-field input[aria-invalid='true'] {
+  border-color: #DC2626;
+}
+
+.doctor-search-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--symply-radius-md);
+  background: var(--symply-primary-bg);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.doctor-search-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--symply-shadow-md);
+}
+
+.doctor-search-error {
+  margin: 12px 0 0;
+  color: #B91C1C;
+  font-size: 0.875rem;
+}
+
+.doctor-search-note {
+  margin: 16px 0 0;
+  color: var(--symply-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 
 /* ─── Loading Section ───────────────────────────────────────────────────────── */
@@ -566,6 +733,18 @@ onMounted(() => {
 
   .location-card {
     padding: 16px;
+  }
+
+  .doctor-search-section {
+    padding: 16px;
+  }
+
+  .doctor-search-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .doctor-search-button {
+    width: 100%;
   }
 
   .section-title {
