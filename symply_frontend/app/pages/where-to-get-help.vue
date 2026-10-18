@@ -39,53 +39,64 @@
         </ClientOnly>
 
         <section class="doctor-search-section" aria-labelledby="doctor-search-title">
-          <h2 id="doctor-search-title" class="section-title">Find a Doctor</h2>
+          <h2 id="doctor-search-title" class="section-title">Doctors Nearby</h2>
           <p class="doctor-search-description">
-            Search for nearby doctors and specialists on Google Maps, where listings may include contact details.
-            Symply does not fetch or verify these listings.
+            View doctor offices listed near {{ userLocation || 'your location' }}. Listings come from OpenStreetMap and may be incomplete or out of date.
           </p>
 
-          <form class="doctor-search-form" @submit.prevent="searchDoctors">
-            <div class="doctor-search-field">
-              <label for="doctor-search-location">Location</label>
-              <input
-                id="doctor-search-location"
-                v-model="doctorLocation"
-                type="text"
-                autocomplete="address-level2"
-                placeholder="City, municipality, or address"
-                :aria-invalid="doctorSearchAttempted && !doctorLocation.trim()"
-                :aria-describedby="doctorSearchAttempted && !doctorLocation.trim() ? 'doctor-search-error' : undefined"
-                @input="doctorSearchAttempted = false"
-              />
-            </div>
-
-            <div class="doctor-search-field">
-              <label for="doctor-search-specialty">Specialty</label>
-              <select id="doctor-search-specialty" v-model="doctorSpecialty">
-                <option v-for="specialty in doctorSpecialties" :key="specialty.value" :value="specialty.value">
-                  {{ specialty.label }}
-                </option>
-              </select>
-            </div>
-
-            <button class="doctor-search-button" type="submit">
-              <v-icon icon="mdi-open-in-new" size="18" aria-hidden="true" />
-              Search Doctors
-            </button>
-          </form>
-
-          <p
-            v-if="doctorSearchAttempted && !doctorLocation.trim()"
-            id="doctor-search-error"
-            class="doctor-search-error"
-            role="alert"
+          <button
+            class="doctor-search-button"
+            type="button"
+            :disabled="!userLocation || loading"
+            :aria-expanded="showDoctorResults"
+            aria-controls="nearby-doctor-results"
+            @click="showDoctorResults = !showDoctorResults"
           >
-            Enter a city, municipality, or address to search for doctors nearby.
+            <v-icon icon="mdi-account-search-outline" size="18" aria-hidden="true" />
+            {{ showDoctorResults ? 'Hide Doctors' : 'See Doctors Available' }}
+          </button>
+
+          <p v-if="!userLocation" class="doctor-search-note">
+            Add a location on the <NuxtLink to="/">Info page</NuxtLink> to see nearby doctor listings.
           </p>
-          <p class="doctor-search-note">
-            Google Maps opens in a new tab. Availability and contact information depend on its listings.
-          </p>
+
+          <div
+            v-if="showDoctorResults && userLocation"
+            id="nearby-doctor-results"
+            class="doctor-results"
+            aria-live="polite"
+          >
+            <div v-if="loading" class="doctor-results-state">Loading nearby doctor listings…</div>
+            <div v-else-if="doctorFacilities.length" class="doctor-list">
+              <article v-for="doctor in doctorFacilities" :key="doctor.id" class="doctor-list-item">
+                <div class="doctor-list-icon">
+                  <v-icon icon="mdi-stethoscope" size="22" color="#06B6D4" aria-hidden="true" />
+                </div>
+                <div class="doctor-list-info">
+                  <h3 class="facility-list-name">{{ doctor.name }}</h3>
+                  <p class="doctor-list-source">Doctor listing · OpenStreetMap</p>
+                  <p v-if="doctor.address" class="doctor-list-detail">
+                    <v-icon icon="mdi-map-marker-outline" size="15" aria-hidden="true" />
+                    {{ doctor.address }}
+                  </p>
+                  <p v-if="doctor.phone" class="doctor-list-detail">
+                    <v-icon icon="mdi-phone-outline" size="15" aria-hidden="true" />
+                    <a :href="phoneHref(doctor.phone)">{{ doctor.phone }}</a>
+                  </p>
+                  <p v-if="safeWebsite(doctor.website)" class="doctor-list-detail">
+                    <v-icon icon="mdi-web" size="15" aria-hidden="true" />
+                    <a :href="safeWebsite(doctor.website)" target="_blank" rel="noopener noreferrer">Visit website</a>
+                  </p>
+                  <p v-if="typeof doctor.distanceMeters === 'number'" class="doctor-list-distance">
+                    {{ formatDistance(doctor.distanceMeters) }}
+                  </p>
+                </div>
+              </article>
+            </div>
+            <p v-else class="doctor-results-state">
+              No doctor listings were found in nearby OpenStreetMap data. This does not mean there are no doctors in the area.
+            </p>
+          </div>
         </section>
 
         <!-- Nearby Hospitals & Clinics List -->
@@ -232,33 +243,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import NearbyHealthMap from '~/components/NearbyHealthMap.vue'
 import { evaluateTriage, getTriageColor } from '~/composables/useTriage'
 
 const router = useRouter()
 const userLocation = ref(null)
-const doctorLocation = ref('')
-const doctorSpecialty = ref('doctors')
-const doctorSearchAttempted = ref(false)
-const doctorSpecialties = [
-  { label: 'General doctors', value: 'doctors' },
-  { label: 'General practitioners', value: 'general practitioners' },
-  { label: 'Pediatricians', value: 'pediatricians' },
-  { label: 'Dermatologists', value: 'dermatologists' },
-  { label: 'Cardiologists', value: 'cardiologists' },
-  { label: 'Dentists', value: 'dentists' },
-  { label: 'OB-GYNs', value: 'ob-gyns' },
-  { label: 'Orthopedic specialists', value: 'orthopedic specialists' },
-  { label: 'Ophthalmologists', value: 'ophthalmologists' },
-  { label: 'Neurologists', value: 'neurologists' },
-  { label: 'Psychiatrists', value: 'psychiatrists' },
-]
+const showDoctorResults = ref(false)
 /* Exact coordinates saved by the Info page's autocomplete (null when unavailable) */
 const userCoords = ref({ lat: null, lng: null })
 const facilities = ref([])
 const loading = ref(true)
+const doctorFacilities = computed(() => facilities.value.filter((facility) => {
+  const type = String(facility.type || '').toLowerCase()
+  return type === 'doctor' || type === 'doctors'
+}))
 
 /* Fixed emergency contact number shown for every facility, since individual
    facility phone numbers are usually unavailable from OpenStreetMap. Matches
@@ -270,17 +270,17 @@ const showSummary = ref(false)
 const summaryProfile = ref({ age: '', sex: '', location: '' })
 const summarySymptoms = ref([])
 
-function searchDoctors() {
-  const location = doctorLocation.value.trim()
-  doctorSearchAttempted.value = true
-  if (!location) return
+function phoneHref(phone) {
+  return `tel:${String(phone || '').replace(/[^0-9+]/g, '')}`
+}
 
-  const params = new URLSearchParams({
-    api: '1',
-    query: `${doctorSpecialty.value} near ${location}`,
-  })
-  const searchUrl = `https://www.google.com/maps/search/?${params.toString()}`
-  window.open(searchUrl, '_blank', 'noopener,noreferrer')
+function safeWebsite(website) {
+  try {
+    const url = new URL(website)
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : ''
+  } catch (e) {
+    return ''
+  }
 }
 
 /* Triage badge tint keyed off the level, mirroring what-you-can-do.vue */
@@ -353,7 +353,6 @@ function finishAndReset() {
 async function loadUserProfile() {
   try {
     userLocation.value = localStorage.getItem('symply_user_address')
-    doctorLocation.value = userLocation.value || ''
 
     // Read coordinates saved by the Info page's autocomplete (if any)
     const rawLat = Number(localStorage.getItem('symply_user_lat'))
@@ -484,44 +483,9 @@ onMounted(() => {
   line-height: 1.6;
 }
 
-.doctor-search-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 16px;
-}
-
-.doctor-search-field {
-  min-width: 0;
-}
-
-.doctor-search-field label {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--symply-text-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.doctor-search-field input,
-.doctor-search-field select {
-  width: 100%;
-  min-height: 48px;
-  padding: 10px 12px;
-  border: 1px solid var(--symply-border);
-  border-radius: var(--symply-radius-md);
-  background: var(--symply-card-bg);
-  color: var(--symply-text-primary);
-  font: inherit;
-}
-
-.doctor-search-field input[aria-invalid='true'] {
-  border-color: #DC2626;
-}
-
 .doctor-search-button {
   display: inline-flex;
-  min-height: 48px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -532,7 +496,6 @@ onMounted(() => {
   color: white;
   font: inherit;
   font-weight: 600;
-  white-space: nowrap;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -542,10 +505,82 @@ onMounted(() => {
   box-shadow: var(--symply-shadow-md);
 }
 
-.doctor-search-error {
-  margin: 12px 0 0;
-  color: #B91C1C;
+.doctor-search-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.doctor-results {
+  margin-top: 20px;
+}
+
+.doctor-list {
+  display: grid;
+  gap: 12px;
+}
+
+.doctor-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--symply-border);
+  border-radius: var(--symply-radius-md);
+  background: var(--symply-card-bg);
+}
+
+.doctor-list-icon {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--symply-radius-md);
+  background: var(--symply-primary-light);
+}
+
+.doctor-list-info {
+  min-width: 0;
+}
+
+.doctor-list-source,
+.doctor-list-detail,
+.doctor-list-distance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
   font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.doctor-list-source {
+  color: var(--symply-text-muted);
+  font-size: 0.8125rem;
+}
+
+.doctor-list-detail {
+  color: var(--symply-text-secondary);
+}
+
+.doctor-list-detail a {
+  color: var(--symply-primary);
+  overflow-wrap: anywhere;
+}
+
+.doctor-list-distance {
+  color: var(--symply-text-muted);
+  font-size: 0.8125rem;
+}
+
+.doctor-results-state {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--symply-radius-md);
+  background: var(--symply-bg-app);
+  color: var(--symply-text-secondary);
 }
 
 .doctor-search-note {
@@ -737,10 +772,6 @@ onMounted(() => {
 
   .doctor-search-section {
     padding: 16px;
-  }
-
-  .doctor-search-form {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .doctor-search-button {
