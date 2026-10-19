@@ -67,8 +67,8 @@
                   {{ doctor.initials }}
                 </div>
                 <div class="doctor-list-info">
-                  <h3 class="facility-list-name doctor-list-name">{{ doctor.name }}</h3>
-                  <span class="doctor-specialty">{{ doctor.specialty }}</span>
+                  <h3 class="facility-list-name doctor-list-name">{{ doctor.specialty }}</h3>
+                  <p class="doctor-clinic">{{ doctor.clinic }}</p>
                   <div class="doctor-list-meta">
                     <p class="doctor-list-detail doctor-list-location">
                       <v-icon icon="mdi-hospital-building" size="15" aria-hidden="true" />
@@ -256,13 +256,12 @@ const facilities = ref([])
 const loading = ref(true)
 /* Static doctor directory for the "Doctors Nearby" section.
    OpenStreetMap's `amenity=doctors` tag only ever yields facility/building
-   names (e.g. "Santos Clinic") — never individual doctors — so this section
-   uses a fixed curated list instead of live map data. */
+   names — never individual doctors — so this section uses a fixed curated
+   list of generic specialty + clinic entries instead of live map data. */
 const DOCTORS = [
   {
     id: 'doctor-1',
-    name: 'Dr. Maria Santos',
-    initials: 'MS',
+    initials: 'GP',
     specialty: 'General Practitioner',
     clinic: 'San Fernando City Health Center',
     address: 'A. Consunji Street, San Fernando, Pampanga',
@@ -271,8 +270,7 @@ const DOCTORS = [
   },
   {
     id: 'doctor-2',
-    name: 'Dr. Jose Reyes',
-    initials: 'JR',
+    initials: 'IM',
     specialty: 'Internal Medicine',
     clinic: 'Navarro–Mallari Charity Clinic',
     address: 'San Fernando, Pampanga',
@@ -281,8 +279,7 @@ const DOCTORS = [
   },
   {
     id: 'doctor-3',
-    name: 'Dra. Ana Dela Cruz',
-    initials: 'AD',
+    initials: 'FM',
     specialty: 'Family Medicine',
     clinic: 'Saint Ferdinand Medical Arts Building',
     address: 'San Fernando, Pampanga',
@@ -291,8 +288,7 @@ const DOCTORS = [
   },
   {
     id: 'doctor-4',
-    name: 'Dr. Miguel Torres',
-    initials: 'MT',
+    initials: 'PD',
     specialty: 'Pediatrics',
     clinic: 'Santos Clinic',
     address: 'San Fernando, Pampanga',
@@ -589,15 +585,11 @@ onMounted(() => {
   letter-spacing: 0.5px;
 }
 
-.doctor-specialty {
-  display: inline-block;
-  align-self: flex-start;
-  padding: 2px 10px;
-  border-radius: 20px;
-  background: var(--symply-primary-light);
-  color: var(--symply-primary-bg);
-  font-size: 0.75rem;
-  font-weight: 600;
+.doctor-clinic {
+  margin: 0;
+  color: var(--symply-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .doctor-list-icon {
