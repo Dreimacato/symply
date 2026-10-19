@@ -41,13 +41,12 @@
         <section class="doctor-search-section" aria-labelledby="doctor-search-title">
           <h2 id="doctor-search-title" class="section-title">Doctors Nearby</h2>
           <p class="doctor-search-description">
-            View doctor offices listed near {{ userLocation || 'your location' }}. Listings come from OpenStreetMap and may be incomplete or out of date.
+            Meet some of the doctors you can consult{{ userLocation ? ` near ${userLocation}` : '' }}. Contact the clinic directly to book an appointment.
           </p>
 
           <button
             class="doctor-search-button"
             type="button"
-            :disabled="!userLocation || loading"
             :aria-expanded="showDoctorResults"
             aria-controls="nearby-doctor-results"
             @click="showDoctorResults = !showDoctorResults"
@@ -56,49 +55,45 @@
             {{ showDoctorResults ? 'Hide Doctors' : 'See Doctors Available' }}
           </button>
 
-          <p v-if="!userLocation" class="doctor-search-note">
-            Add a location on the <NuxtLink to="/">Info page</NuxtLink> to see nearby doctor listings.
-          </p>
-
           <div
-            v-if="showDoctorResults && userLocation"
+            v-if="showDoctorResults"
             id="nearby-doctor-results"
             class="doctor-results"
             aria-live="polite"
           >
-            <div v-if="loading" class="doctor-results-state">Loading nearby doctor listings…</div>
-            <div v-else-if="doctorFacilities.length" class="doctor-list">
-              <article v-for="doctor in doctorFacilities" :key="doctor.id" class="doctor-list-item">
-                <div class="doctor-list-icon">
-                  <v-icon icon="mdi-stethoscope" size="22" color="#06B6D4" aria-hidden="true" />
+            <div class="doctor-list">
+              <article v-for="doctor in DOCTORS" :key="doctor.id" class="doctor-list-item">
+                <div class="doctor-avatar" aria-hidden="true">
+                  {{ doctor.initials }}
                 </div>
                 <div class="doctor-list-info">
                   <h3 class="facility-list-name doctor-list-name">{{ doctor.name }}</h3>
-                  <p class="doctor-list-source">Doctor listing · OpenStreetMap</p>
+                  <span class="doctor-specialty">{{ doctor.specialty }}</span>
                   <div class="doctor-list-meta">
-                    <p v-if="doctor.address" class="doctor-list-detail doctor-list-location">
+                    <p class="doctor-list-detail doctor-list-location">
+                      <v-icon icon="mdi-hospital-building" size="15" aria-hidden="true" />
+                      <span>{{ doctor.clinic }}</span>
+                    </p>
+                    <p class="doctor-list-detail doctor-list-location">
                       <v-icon icon="mdi-map-marker-outline" size="15" aria-hidden="true" />
                       <span>{{ doctor.address }}</span>
                     </p>
-                    <p v-if="typeof doctor.distanceMeters === 'number'" class="doctor-list-distance">
-                      {{ formatDistance(doctor.distanceMeters) }}
+                    <p class="doctor-list-detail doctor-list-location">
+                      <v-icon icon="mdi-clock-outline" size="15" aria-hidden="true" />
+                      <span>{{ doctor.hours }}</span>
                     </p>
                   </div>
-                  <div v-if="doctor.phone || safeWebsite(doctor.website)" class="doctor-list-actions">
-                    <a v-if="doctor.phone" class="doctor-list-action" :href="phoneHref(doctor.phone)">
+                  <div class="doctor-list-actions">
+                    <a class="doctor-list-action" :href="phoneHref(doctor.phone)">
                       <v-icon icon="mdi-phone-outline" size="15" aria-hidden="true" />
                       <span>{{ doctor.phone }}</span>
-                    </a>
-                    <a v-if="safeWebsite(doctor.website)" class="doctor-list-action" :href="safeWebsite(doctor.website)" target="_blank" rel="noopener noreferrer">
-                      <v-icon icon="mdi-web" size="15" aria-hidden="true" />
-                      <span>Visit website</span>
                     </a>
                   </div>
                 </div>
               </article>
             </div>
-            <p v-else class="doctor-results-state">
-              No doctor listings were found in nearby OpenStreetMap data. This does not mean there are no doctors in the area.
+            <p class="doctor-search-note">
+              Sample directory for demonstration — please verify doctor availability with the clinic before visiting.
             </p>
           </div>
         </section>
@@ -259,66 +254,52 @@ const showDoctorResults = ref(false)
 const userCoords = ref({ lat: null, lng: null })
 const facilities = ref([])
 const loading = ref(true)
-/* Static fallback directory shown when OpenStreetMap has no doctor offices
-   mapped near the user's location (very common — `amenity=doctors` is
-   sparsely mapped). Clearly marked as sample listings in the UI. */
-const FALLBACK_DOCTORS = [
+/* Static doctor directory for the "Doctors Nearby" section.
+   OpenStreetMap's `amenity=doctors` tag only ever yields facility/building
+   names (e.g. "Santos Clinic") — never individual doctors — so this section
+   uses a fixed curated list instead of live map data. */
+const DOCTORS = [
   {
-    id: 'sample-doctor-1',
+    id: 'doctor-1',
     name: 'Dr. Maria Santos',
+    initials: 'MS',
     specialty: 'General Practitioner',
-    clinic: 'Symply Partner Clinic — General Medicine',
-    address: '123 Mabini Street, Manila, Metro Manila',
-    phone: '+63 (2) 8555 0134',
+    clinic: 'San Fernando City Health Center',
+    address: 'A. Consunji Street, San Fernando, Pampanga',
+    phone: '+63 (45) 961 1234',
     hours: 'Mon–Sat · 8:00 AM – 5:00 PM',
-    isSample: true,
   },
   {
-    id: 'sample-doctor-2',
+    id: 'doctor-2',
     name: 'Dr. Jose Reyes',
+    initials: 'JR',
     specialty: 'Internal Medicine',
-    clinic: 'City Health Medical Center — Internal Medicine',
-    address: '45 Rizal Avenue, Quezon City, Metro Manila',
-    phone: '+63 (2) 8555 0178',
+    clinic: 'Navarro–Mallari Charity Clinic',
+    address: 'San Fernando, Pampanga',
+    phone: '+63 (45) 961 5678',
     hours: 'Mon–Fri · 9:00 AM – 6:00 PM',
-    isSample: true,
   },
   {
-    id: 'sample-doctor-3',
+    id: 'doctor-3',
     name: 'Dra. Ana Dela Cruz',
+    initials: 'AD',
     specialty: 'Family Medicine',
-    clinic: 'Community Care Clinic — Family Health',
-    address: '78 Bonifacio Road, Makati, Metro Manila',
-    phone: '+63 (2) 8555 0121',
+    clinic: 'Saint Ferdinand Medical Arts Building',
+    address: 'San Fernando, Pampanga',
+    phone: '+63 (45) 961 9012',
     hours: 'Mon–Sat · 8:00 AM – 4:00 PM',
-    isSample: true,
   },
   {
-    id: 'sample-doctor-4',
+    id: 'doctor-4',
     name: 'Dr. Miguel Torres',
+    initials: 'MT',
     specialty: 'Pediatrics',
-    clinic: "St. Luke's Children's Wing — Pediatrics",
-    address: '12 EDSA, Mandaluyong, Metro Manila',
-    phone: '+63 (2) 8555 0156',
+    clinic: 'Santos Clinic',
+    address: 'San Fernando, Pampanga',
+    phone: '+63 (45) 961 3456',
     hours: 'Tue–Sun · 9:00 AM – 5:00 PM',
-    isSample: true,
   },
 ]
-
-/* Real OSM doctor offices (`amenity=doctors`) — often empty, since that tag
-   is rarely mapped. Anything else (hospitals, clinics, pharmacies, or an
-   error/empty result) falls back to the static directory above. */
-const doctorFacilities = computed(() => facilities.value.filter((facility) => {
-  const type = String(facility.type || '').toLowerCase()
-  return type === 'doctor' || type === 'doctors'
-}))
-
-/* What the "Doctors Nearby" section actually renders: live OSM results when
-   any exist, otherwise the static sample directory. */
-const displayedDoctors = computed(() =>
-  doctorFacilities.value.length > 0 ? doctorFacilities.value : FALLBACK_DOCTORS
-)
-const usingFallbackDoctors = computed(() => doctorFacilities.value.length === 0)
 
 /* Fixed emergency contact number shown for every facility, since individual
    facility phone numbers are usually unavailable from OpenStreetMap. Matches
@@ -585,12 +566,38 @@ onMounted(() => {
 
 .doctor-list-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
-  padding: 14px 16px;
+  padding: 16px;
   border: 1px solid var(--symply-border);
   border-radius: var(--symply-radius-md);
   background: var(--symply-card-bg);
+}
+
+.doctor-avatar {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--symply-primary-bg) 0%, var(--symply-primary) 100%);
+  color: white;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.doctor-specialty {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: var(--symply-primary-light);
+  color: var(--symply-primary-bg);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .doctor-list-icon {
@@ -622,18 +629,12 @@ onMounted(() => {
   word-break: break-word;
 }
 
-.doctor-list-source,
 .doctor-list-detail,
 .doctor-list-distance {
   font-size: 0.8125rem;
   line-height: 1.5;
   overflow-wrap: break-word;
   word-break: break-word;
-}
-
-.doctor-list-source {
-  margin: 0;
-  color: var(--symply-text-muted);
 }
 
 .doctor-list-meta {
