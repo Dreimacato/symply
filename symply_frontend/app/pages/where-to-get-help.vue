@@ -61,8 +61,25 @@
             class="doctor-results"
             aria-live="polite"
           >
+            <div class="doctor-filters" role="group" aria-label="Filter doctors by specialty">
+              <button
+                v-for="option in SPECIALTY_FILTERS"
+                :key="option.value"
+                type="button"
+                class="doctor-filter-pill"
+                :class="{ 'doctor-filter-pill--active': specialtyFilter === option.value }"
+                :aria-pressed="specialtyFilter === option.value"
+                @click="specialtyFilter = option.value"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+            <p class="doctor-filter-count" aria-live="polite">
+              Showing {{ filteredDoctors.length }} of {{ DOCTORS.length }} doctors
+              <span v-if="specialtyFilter !== 'all'">· {{ activeSpecialtyLabel }}</span>
+            </p>
             <div class="doctor-list">
-              <article v-for="doctor in DOCTORS" :key="doctor.id" class="doctor-list-item">
+              <article v-for="doctor in filteredDoctors" :key="doctor.id" class="doctor-list-item">
                 <div class="doctor-avatar" aria-hidden="true">
                   {{ doctor.initials }}
                 </div>
@@ -70,10 +87,6 @@
                   <h3 class="facility-list-name doctor-list-name">{{ doctor.specialty }}</h3>
                   <p class="doctor-clinic">{{ doctor.clinic }}</p>
                   <div class="doctor-list-meta">
-                    <p class="doctor-list-detail doctor-list-location">
-                      <v-icon icon="mdi-hospital-building" size="15" aria-hidden="true" />
-                      <span>{{ doctor.clinic }}</span>
-                    </p>
                     <p class="doctor-list-detail doctor-list-location">
                       <v-icon icon="mdi-map-marker-outline" size="15" aria-hidden="true" />
                       <span>{{ doctor.address }}</span>
@@ -369,6 +382,24 @@ const DOCTORS = [
   },
 ]
 
+/* Specialty filter for the "Doctors Nearby" section. */
+const SPECIALTY_FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'General Practitioner', label: 'General Practitioner' },
+  { value: 'Internal Medicine', label: 'Internal Medicine' },
+  { value: 'Family Medicine', label: 'Family Medicine' },
+  { value: 'Pediatrics', label: 'Pediatrics' },
+]
+const specialtyFilter = ref('all')
+const filteredDoctors = computed(() =>
+  specialtyFilter.value === 'all'
+    ? DOCTORS
+    : DOCTORS.filter((doctor) => doctor.specialty === specialtyFilter.value)
+)
+const activeSpecialtyLabel = computed(
+  () => SPECIALTY_FILTERS.find((option) => option.value === specialtyFilter.value)?.label || ''
+)
+
 /* Fixed emergency contact number shown for every facility, since individual
    facility phone numbers are usually unavailable from OpenStreetMap. Matches
    the number used in the triage-flow facilities list (useTriageFlow.ts). */
@@ -625,6 +656,44 @@ onMounted(() => {
 
 .doctor-results {
   margin-top: 20px;
+}
+
+.doctor-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.doctor-filter-pill {
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--symply-border);
+  border-radius: 20px;
+  background: var(--symply-card-bg);
+  color: var(--symply-text-secondary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.doctor-filter-pill:hover {
+  border-color: var(--symply-primary);
+  color: var(--symply-text-primary);
+}
+
+.doctor-filter-pill--active {
+  border-color: var(--symply-primary-bg);
+  background: var(--symply-primary-bg);
+  color: white;
+}
+
+.doctor-filter-count {
+  margin: 0 0 12px;
+  color: var(--symply-text-muted);
+  font-size: 0.8125rem;
 }
 
 .doctor-list {
