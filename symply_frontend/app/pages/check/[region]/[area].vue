@@ -242,7 +242,7 @@ function clearFilters() {
 }
 
 useHead({
-  title: computed(() => `Symply — ${areaTitle.value} Symptoms`),
+  title: 'Symply',
 })
 </script>
 

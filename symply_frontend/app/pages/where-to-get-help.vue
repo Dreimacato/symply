@@ -259,10 +259,66 @@ const showDoctorResults = ref(false)
 const userCoords = ref({ lat: null, lng: null })
 const facilities = ref([])
 const loading = ref(true)
+/* Static fallback directory shown when OpenStreetMap has no doctor offices
+   mapped near the user's location (very common — `amenity=doctors` is
+   sparsely mapped). Clearly marked as sample listings in the UI. */
+const FALLBACK_DOCTORS = [
+  {
+    id: 'sample-doctor-1',
+    name: 'Dr. Maria Santos',
+    specialty: 'General Practitioner',
+    clinic: 'Symply Partner Clinic — General Medicine',
+    address: '123 Mabini Street, Manila, Metro Manila',
+    phone: '+63 (2) 8555 0134',
+    hours: 'Mon–Sat · 8:00 AM – 5:00 PM',
+    isSample: true,
+  },
+  {
+    id: 'sample-doctor-2',
+    name: 'Dr. Jose Reyes',
+    specialty: 'Internal Medicine',
+    clinic: 'City Health Medical Center — Internal Medicine',
+    address: '45 Rizal Avenue, Quezon City, Metro Manila',
+    phone: '+63 (2) 8555 0178',
+    hours: 'Mon–Fri · 9:00 AM – 6:00 PM',
+    isSample: true,
+  },
+  {
+    id: 'sample-doctor-3',
+    name: 'Dra. Ana Dela Cruz',
+    specialty: 'Family Medicine',
+    clinic: 'Community Care Clinic — Family Health',
+    address: '78 Bonifacio Road, Makati, Metro Manila',
+    phone: '+63 (2) 8555 0121',
+    hours: 'Mon–Sat · 8:00 AM – 4:00 PM',
+    isSample: true,
+  },
+  {
+    id: 'sample-doctor-4',
+    name: 'Dr. Miguel Torres',
+    specialty: 'Pediatrics',
+    clinic: "St. Luke's Children's Wing — Pediatrics",
+    address: '12 EDSA, Mandaluyong, Metro Manila',
+    phone: '+63 (2) 8555 0156',
+    hours: 'Tue–Sun · 9:00 AM – 5:00 PM',
+    isSample: true,
+  },
+]
+
+/* Real OSM doctor offices (`amenity=doctors`) — often empty, since that tag
+   is rarely mapped. Anything else (hospitals, clinics, pharmacies, or an
+   error/empty result) falls back to the static directory above. */
 const doctorFacilities = computed(() => facilities.value.filter((facility) => {
   const type = String(facility.type || '').toLowerCase()
   return type === 'doctor' || type === 'doctors'
 }))
+
+/* What the "Doctors Nearby" section actually renders: live OSM results when
+   any exist, otherwise the static sample directory. */
+const displayedDoctors = computed(() =>
+  doctorFacilities.value.length > 0 ? doctorFacilities.value : FALLBACK_DOCTORS
+)
+const usingFallbackDoctors = computed(() => doctorFacilities.value.length === 0)
 
 /* Fixed emergency contact number shown for every facility, since individual
    facility phone numbers are usually unavailable from OpenStreetMap. Matches

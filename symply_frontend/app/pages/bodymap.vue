@@ -1630,7 +1630,7 @@ function restoreSelectedSymptoms() {
 }
 onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
 
-useHead({ title: 'Symply — Body Map' })
+useHead({ title: 'Symply' })
 </script>
 
 <style scoped>

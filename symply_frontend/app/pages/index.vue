@@ -161,7 +161,7 @@ async function handleContinue() {
 }
 
 useHead({
-  title: 'Symply — Symptom Checker',
+  title: 'Symply',
 })
 </script>
 

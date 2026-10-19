@@ -159,7 +159,7 @@ function getTriageColor(level) {
 }
 
 useHead({
-  title: computed(() => `Symply — Search: ${searchQuery.value}`),
+  title: 'Symply',
 })
 </script>
 

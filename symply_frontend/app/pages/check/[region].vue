@@ -164,7 +164,7 @@ function selectArea(areaSlug) {
 }
 
 useHead({
-  title: computed(() => `Symply — ${regionTitle.value} Areas`),
+  title: 'Symply',
 })
 </script>
 

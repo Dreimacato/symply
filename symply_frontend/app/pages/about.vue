@@ -257,7 +257,7 @@ function goBack() {
 }
 
 useHead({
-  title: 'About Symply',
+  title: 'Symply',
 })
 </script>
 

@@ -229,7 +229,7 @@ function printPage() {
 }
 
 useHead({
-  title: computed(() => concern.value ? `Symply — ${concern.value.symptom}` : 'Symply'),
+  title: 'Symply',
 })
 </script>
 

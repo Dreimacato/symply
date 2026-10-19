@@ -23,6 +23,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      title: 'Symply',
       link: [
         {
           rel: 'icon',
