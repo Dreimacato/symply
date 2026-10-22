@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <!-- App Bar -->
-    <v-app-bar color="surface" elevation="0" border="b">
+    <!-- App Bar (transparent, seamless over Arctic Frost, scrolls with page) -->
+    <v-app-bar color="transparent" elevation="0" class="symply-app-bar">
       <div class="app-bar-container d-flex align-center">
         <NuxtLink
           to="/"
@@ -67,77 +67,88 @@
       </div>
     </v-app-bar>
 
+    <!-- Arctic Frost aura: fixed backdrop behind every page -->
+    <AuraBackground backdrop />
+
     <!-- Page Content -->
     <v-main class="symply-main">
       <slot />
     </v-main>
 
-    <!-- Unified Footer -->
+    <!-- Unified Footer (informational only - deliberately not a navigation menu) -->
     <v-footer class="symply-footer">
       <v-container class="footer-container">
         <div class="footer-bottom">
-            <!-- Footer Brand -->
-            <v-row class="footer-main" align="center">
-              <v-col cols="12" md="8" class="footer-brand">
-                <NuxtLink
-                  to="/"
-                  class="footer-logo"
-                  aria-label="Symply home"
-                >
-                  <img
-                    :src="logoUrl"
-                    alt="Symply"
-                    class="footer-logo-img"
-                  />
-                </NuxtLink>
+          <div class="footer-grid">
+            <!-- Brand -->
+            <div class="footer-col footer-col--brand">
+              <img :src="logoUrl" alt="Symply" class="footer-logo-img" />
+              <p class="footer-tagline">Understand your symptoms. Know your next step.</p>
+              <NuxtLink to="/about" class="footer-about-btn">
+                About Us
+                <v-icon icon="mdi-arrow-right" size="16" aria-hidden="true" />
+              </NuxtLink>
+              <p class="footer-copyright">© {{ currentYear }} Symply. All rights reserved.</p>
+            </div>
 
-                <p class="footer-tagline">
-                  Understand your symptoms.
-                  <br />
-                  Know your next step.
-                </p>
+            <!-- Our Purpose -->
+            <div class="footer-col">
+              <h3 class="footer-heading">Our Purpose</h3>
+              <ul class="footer-list">
+                <li class="footer-item">Understand Symptoms</li>
+                <li class="footer-item">Explore Health Information</li>
+                <li class="footer-item">Support Informed Decisions</li>
+              </ul>
+            </div>
 
-                <div class="footer-note">
-                  <v-icon
-                    icon="mdi-heart-pulse"
-                    size="17"
-                    aria-hidden="true"
-                  />
-                  <span>
-                    Made to help you make informed decisions about your health.
-                  </span>
-                </div>
-              </v-col>
+            <!-- Health & Safety -->
+            <div class="footer-col">
+              <h3 class="footer-heading">Health &amp; Safety</h3>
+              <ul class="footer-list">
+                <li class="footer-item">Educational Information</li>
+                <li class="footer-item">Medical Disclaimer</li>
+                <li class="footer-item">Seek Professional Care</li>
+              </ul>
+            </div>
 
-              <!-- About Us Button -->
-              <v-col
-                cols="12"
-                md="4"
-                class="d-flex justify-start justify-md-end align-center"
-              >
-                <v-btn
-                  to="/about"
-                  variant="outlined"
-                  color="primary"
-                  rounded="lg"
-                  class="about-us-btn"
-                  append-icon="mdi-arrow-right"
-                >
-                  About Us
-                </v-btn>
-              </v-col>
-            </v-row>
+            <!-- About Symply -->
+            <div class="footer-col">
+              <h3 class="footer-heading">About Symply</h3>
+              <ul class="footer-list">
+                <li class="footer-item">Symptom Awareness</li>
+                <li class="footer-item">User-Friendly Design</li>
+                <li class="footer-item">Health Education</li>
+              </ul>
+            </div>
+          </div>
 
-          <!-- Copyright -->
-          <div class="footer-legal">
-            <span class="footer-copyright">
-              © {{ currentYear }} Symply. All rights reserved.
-            </span>
+          <!-- Decorative interactive wordmark (React Bits TechText) -->
+          <div class="footer-wordmark-wrap">
+            <div class="footer-wordmark-stage">
+              <TechText
+                text="Symply"
+                class-name="footer-tech-text"
+                :font-weight="700"
+                :font-size="250"
+                :letter-spacing="-0.04"
+                reveal="letter"
+                :dash-length="4"
+                :dash-gap="2"
+                :specks="15"
+                intro="none"
+                :intro-duration="2"
+                click-kick
+                :guides="false"
+                :labels="true"
+                :accent-color="isDark ? '#22D3EE' : '#7DD3FC'"
+              />
+            </div>
           </div>
         </div>
       </v-container>
     </v-footer>
   </v-app>
+  <Crosshair />
 </template>
 
 <script setup>
@@ -242,11 +253,13 @@ const activeStep = computed(() => {
   margin: 0 0 0 auto;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--symply-border);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: var(--symply-radius-md);
   overflow: hidden;
-  background: white;
+  background: rgba(255, 255, 255, 0.35);
   box-shadow: var(--symply-shadow-sm);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .progress-step {
@@ -258,7 +271,7 @@ const activeStep = computed(() => {
   min-width: max-content;
   padding: 0 20px;
   color: var(--symply-text-muted);
-  background: #f8fafc;
+  background: transparent;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -269,7 +282,7 @@ const activeStep = computed(() => {
 
 .progress-step--active {
   color: var(--symply-primary-bg);
-  background: white;
+  background: rgba(255, 255, 255, 0.55);
   font-weight: 700;
 }
 
@@ -300,169 +313,183 @@ const activeStep = computed(() => {
 }
 
 /* =========================================
-   Footer Background
-========================================= */
+   Footer - transparent panel over the page bg
+   The frost layers are fixed behind everything, so the footer must NOT
+   paint its own background or it cuts the frost and shows a hard seam
+   (a flat darker rectangle in dark mode). Kept transparent in both
+   themes so the backdrop flows through continuously.
+   ========================================= */
 
 .symply-footer {
   display: block;
-  padding: 0;
+  padding: 0 0 32px;
   color: #334155;
-  background: var(--symply-footer-bg);
-  border-top: 1px solid #d6e9e6;
+  background: transparent;
+  border-top: none;
 }
 
 .footer-container {
   width: 100%;
   max-width: 1440px;
-  padding: 32px clamp(1rem, 4vw, 2.5rem);
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
   box-sizing: border-box;
 }
 
-/* All footer content sits inside this panel */
-
+/* The panel itself - stays transparent so the frost flows through */
 .footer-bottom {
-  padding: 32px;
-  background: #e2f1ee;
-  border: 1px solid #d1e6e0;
-  border-radius: 18px;
+  padding: clamp(36px, 5vw, 64px) clamp(24px, 4vw, 56px) 0;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-.footer-main {
-  row-gap: 32px;
+/* Column row */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.35fr repeat(3, minmax(0, 1fr));
+  gap: clamp(32px, 4vw, 56px) clamp(24px, 3vw, 48px);
+  align-items: start;
 }
 
-/* =========================================
-   Footer Brand
-========================================= */
-
-.footer-brand {
+.footer-col {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
 }
 
-.footer-logo {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  text-decoration: none;
+.footer-heading {
+  margin: 0;
+  color: #334155;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.footer-logo-img {
-  display: block;
-  width: auto;
-  height: 42px;
-  object-fit: contain;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+/* Static label list - deliberately not a link list */
+.footer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.footer-logo:hover .footer-logo-img {
-  opacity: 0.85;
-  transform: translateY(-1px);
+.footer-item {
+  color: #1e293b;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Brand column - visually the most prominent */
+.footer-col--brand {
+  gap: 16px;
 }
 
 .footer-tagline {
+  max-width: 30ch;
   margin: 0;
-  color: #183b46;
+  color: #22374d;
   font-size: 1.05rem;
-  font-weight: 650;
-  line-height: 1.65;
-  letter-spacing: -0.01em;
-}
-
-.footer-note {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #607780;
-  font-size: 0.82rem;
-  line-height: 1.6;
-  white-space: nowrap;
-}
-
-.footer-note .v-icon {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: #32877e;
-}
-
-
-/* =========================================
-   Footer Contact
-========================================= */
-
-.footer-contact {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.contact-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  color: #247e75;
-  background: #d5ebe5;
-  border: 1px solid #c5e1d9;
-  border-radius: 12px;
-}
-
-.contact-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  padding-top: 2px;
-}
-
-.contact-title {
-  color: #254650;
-  font-size: 0.9rem;
-  font-weight: 650;
-}
-
-.contact-subtitle {
-  color: #607780;
-  font-size: 0.84rem;
-  line-height: 1.6;
-}
-
-.footer-contact-note {
-  max-width: 290px;
-  margin: 14px 0 0;
-  color: #73878e;
-  font-size: 0.78rem;
-  line-height: 1.65;
-}
-
-
-/* =========================================
-   Footer Copyright
-========================================= */
-
-.footer-legal {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid #cddfda;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .footer-copyright {
-  color: #73878e;
-  font-size: 0.76rem;
+  margin: 0;
+  color: #475569;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* The one interactive element in the footer - routes to the about page.
+   Kept transparent so the frost still flows behind it. */
+.footer-about-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  border-radius: 10px;
+  background: transparent;
+  color: #22374d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-about-btn:hover {
+  border-color: #0b4f8f;
+  background: rgba(255, 255, 255, 0.14);
+  color: #0b4f8f;
+  transform: translateY(-1px);
+}
+
+.footer-about-btn:focus-visible {
+  outline: 2px solid #0b4f8f;
+  outline-offset: 2px;
+}
+
+/* Brand logo */
+.footer-logo-img {
+  display: block;
+  width: auto;
+  height: 44px;
+  object-fit: contain;
 }
 
 /* =========================================
+   Decorative oversized wordmark
+   ========================================= */
+
+.footer-wordmark-wrap {
+  margin-top: clamp(40px, 6vw, 80px);
+  padding-bottom: clamp(8px, 1.5vw, 20px);
+  overflow: hidden;
+  border-top: 1px solid rgba(15, 23, 42, 0.12);
+  user-select: none;
+}
+
+/* Sized stage for the TechText canvas. The canvas fills it, and the wordmark
+   ink colour comes from `color` (the component defaults to currentColor).
+   Light mode sits on the ocean gradient, so the ink is deep ocean navy -
+   a frosted white washed out against the mid-teal page. The drop shadow on
+   the canvas lifts the letters off the backdrop so they read as raised. */
+.footer-wordmark-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(140px, 18vw, 280px);
+  color: rgba(11, 79, 143, 0.88);
+}
+
+.footer-wordmark-stage .footer-tech-text {
+  filter: drop-shadow(0 12px 26px rgba(3, 22, 34, 0.38));
+}
+
+
+/* =========================================
    Tablet and Mobile
-========================================= */
+   ========================================= */
+
+/* Tablet: four columns wrap down to two */
+@media (max-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px 28px;
+  }
+
+  .footer-tagline {
+    max-width: none;
+  }
+}
 
 @media (max-width: 768px) {
   .app-bar-container {
@@ -496,23 +523,33 @@ const activeStep = computed(() => {
   }
 
   .footer-container {
-    padding: 24px 16px;
+    padding: 0 16px;
   }
 
   .footer-bottom {
-    padding: 24px 20px;
-    border-radius: 14px;
+    padding: 28px 22px 0;
   }
-
-  .footer-main {
-    row-gap: 28px;
-  }
-
 }
 
 /* =========================================
    Small Phones
-========================================= */
+   ========================================= */
+
+/* Mobile: stack the sections vertically */
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .footer-col--brand {
+    gap: 12px;
+  }
+
+  .footer-tagline {
+    font-size: 0.98rem;
+  }
+}
 
 @media (max-width: 420px) {
   .progress-step {
@@ -526,132 +563,82 @@ const activeStep = computed(() => {
     left: 4px;
   }
 
-  .footer-bottom {
-    padding: 22px 16px;
-  }
-
-  .footer-heading {
-    margin-bottom: 14px;
-    font-size: 0.72rem;
-  }
-
-  .footer-links {
-    gap: 10px;
-  }
-
-  .footer-links a {
-    font-size: 0.84rem;
-  }
-
-  .footer-tagline {
-    font-size: 0.98rem;
-  }
-
-  .footer-note {
-    white-space: normal;
-  }
-
-  .footer-legal {
-    align-items: flex-start;
-    flex-direction: column;
+  .footer-logo-img {
+    height: 38px;
   }
 }
 
 /* Respect reduced-motion preferences */
 
 @media (prefers-reduced-motion: reduce) {
-  .symply-logo-img,
-  .footer-logo-img,
-  .footer-links a {
+  .symply-logo-img {
     transition: none;
   }
 }
 
-/* About Us Footer Button */
-.about-us-btn {
-  border-color: #b8d8d1 !important;
-  color: #247e75 !important;
-  background: rgba(255, 255, 255, 0.45);
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.about-us-btn:hover {
-  background: #d5ebe5;
-  border-color: #8fc6bb !important;
-  transform: translateY(-2px);
-}
 
 /* =========================================
-   Dark theme overrides for fixed-color surfaces
-   (progress tracker + teal footer) that don't
-   use --symply-* variables.
+   Dark theme overrides for the floating-card footer
 ========================================= */
 
+:root[data-theme='dark'] .progress-tracker {
+  background: rgba(16, 14, 11, 0.45);
+  border-color: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 :root[data-theme='dark'] .progress-step {
-  background: #0f1a2b;
+  background: transparent;
+  color: var(--symply-text-muted);
 }
 
 :root[data-theme='dark'] .progress-step--active {
-  background: var(--symply-card-bg);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--symply-text-primary);
+}
+
+:root[data-theme='dark'] .progress-divider {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 :root[data-theme='dark'] .symply-footer {
   color: var(--symply-text-secondary);
-  background: var(--symply-footer-bg);
-  border-top-color: var(--symply-border);
+  background: transparent;
 }
 
 :root[data-theme='dark'] .footer-bottom {
-  background: var(--symply-card-bg);
-  border-color: var(--symply-border);
-}
-
-:root[data-theme='dark'] .footer-legal {
-  border-top-color: var(--symply-border);
-}
-
-:root[data-theme='dark'] .contact-card {
-  background: #0f1a2b;
-  border-color: var(--symply-border);
-}
-
-:root[data-theme='dark'] .contact-title {
-  color: var(--symply-text-primary);
-}
-
-:root[data-theme='dark'] .contact-subtitle,
-:root[data-theme='dark'] .footer-copyright,
-:root[data-theme='dark'] .footer-contact-note {
-  color: var(--symply-text-secondary);
-}
-
-:root[data-theme='dark'] .footer-links a,
-:root[data-theme='dark'] .footer-heading {
-  color: var(--symply-text-secondary);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 :root[data-theme='dark'] .footer-tagline {
   color: var(--symply-text-primary);
 }
 
-:root[data-theme='dark'] .footer-note {
+:root[data-theme='dark'] .footer-heading,
+:root[data-theme='dark'] .footer-copyright,
+:root[data-theme='dark'] .footer-item {
   color: var(--symply-text-secondary);
 }
 
-:root[data-theme='dark'] .about-us-btn {
-  background: rgba(56, 189, 248, 0.08);
-  border-color: var(--symply-border) !important;
-  color: var(--symply-primary) !important;
+:root[data-theme='dark'] .footer-about-btn {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--symply-text-primary);
 }
 
-:root[data-theme='dark'] .about-us-btn:hover {
+:root[data-theme='dark'] .footer-about-btn:hover {
+  border-color: var(--symply-primary);
   background: var(--symply-primary-light);
-  border-color: var(--symply-primary) !important;
+  color: var(--symply-primary);
+}
+
+:root[data-theme='dark'] .footer-wordmark-wrap {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme='dark'] .footer-wordmark-stage {
+  color: rgba(255, 255, 255, 0.32);
 }
 </style>

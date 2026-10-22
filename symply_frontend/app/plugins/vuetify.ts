@@ -36,6 +36,13 @@ export default defineNuxtPlugin((nuxtApp) => {
           },
         },
         dark: {
+          /* `dark: true` tells Vuetify this is a dark theme so it picks the
+             dark `on-*` foreground defaults. Without it Vuetify keeps the
+             light-theme foregrounds (dark text) and every v-card / v-list /
+             v-dialog renders dark-on-dark in dark mode. The explicit
+             `on-surface` / `on-background` entries make the text color
+             independent of that flag. */
+          dark: true,
           colors: {
             primary: '#60A5FA',
             secondary: '#14B8A6',
@@ -44,8 +51,10 @@ export default defineNuxtPlugin((nuxtApp) => {
             info: '#0EA5E9',
             success: '#22C55E',
             warning: '#F59E0B',
-            background: '#0F172A',
-            surface: '#1E293B',
+            background: '#0F1116',
+            surface: '#16223A',
+            'on-background': '#F2F7FF',
+            'on-surface': '#F2F7FF',
           },
         },
       },

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[var(--symply-bg-app)] text-[var(--symply-text-primary)]" @keydown.esc.window="closeTeamBio">
+  <div class="about-page aura-page-transparent min-h-screen text-[var(--symply-text-primary)]" @keydown.esc.window="closeTeamBio">
     <main class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <div class="space-y-12">
         <header class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--symply-border)] pb-6">
@@ -62,54 +62,25 @@
             <h2 class="m-0 text-3xl font-semibold tracking-normal text-[var(--symply-text-primary)]">Meet the Symply Team</h2>
           </div>
           <div class="team-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <article v-for="member in teamMembers" :key="member.id" class="team-member-block group relative z-0 min-w-0 rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4 shadow-sm transition hover:z-20 hover:-translate-y-0.5 hover:shadow-md focus-within:z-20">
-              <h3 class="m-0 text-base font-semibold leading-snug text-[var(--symply-text-primary)]">{{ member.name }}</h3>
-
-              <div
-                class="team-photo-wrap relative mx-auto w-full max-w-60"
-                @mouseenter="handleTeamBioHover(member, $event)"
-                @mouseleave="hideTeamBio"
-                @focusin="handleTeamBioHover(member, $event)"
-                @focusout="handleTeamBioFocusOut"
-              >
-                <button
-                  class="team-photo-slot flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border border-dashed border-[var(--symply-border)] bg-[var(--symply-bg-app)] p-0 text-[var(--symply-text-muted)] transition hover:border-[var(--symply-primary)] hover:bg-[var(--symply-primary-light)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--symply-primary)]"
-                  type="button"
-                  :aria-label="`View ${member.name}'s biography`"
-                  :aria-expanded="activeTeamBio === member.id"
-                  :aria-controls="`team-bio-${member.id}`"
-                  @click="toggleTeamBio(member, $event)"
-                >
-                  <img v-if="member.photo" :src="member.photo" :alt="member.name" :style="{ objectPosition: member.photoPosition || 'top' }" class="block h-full w-full object-cover" />
-                  <v-icon v-else icon="mdi-image-outline" size="38" aria-hidden="true" />
-                </button>
-
-                <Transition name="team-bio">
-                  <section
-                    v-if="activeTeamBio === member.id"
-                    :id="`team-bio-${member.id}`"
-                    class="team-bio-dialog rounded-xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-4 text-[var(--symply-text-primary)] shadow-xl"
-                    role="dialog"
-                    aria-label="Biography"
-                    :style="{ top: `${teamBioPosition.top}px`, left: `${teamBioPosition.left}px` }"
-                  >
-                    <header class="mb-3 border-b border-[var(--symply-border)] pb-3">
-                      <p class="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--symply-primary)]">Biography</p>
-                      <h3 class="m-0 text-base font-semibold leading-snug text-[var(--symply-text-primary)]">{{ member.name }}</h3>
-                    </header>
-                    <div class="team-bio-content text-justify">
-                      <p v-for="(paragraph, index) in member.bio" :key="index" class="text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">{{ paragraph }}</p>
-                    </div>
-                  </section>
-                </Transition>
-              </div>
-            </article>
+            <ProfileCard
+              v-for="member in teamMembers"
+              :key="member.id"
+              :avatar-url="member.photo"
+              :photo-position="member.photoPosition || 'center bottom'"
+              :name="member.name"
+              :title="member.title"
+              :handle="member.handle"
+              :status="member.status"
+              :status-color="member.statusColor"
+              contact-text="View Bio"
+              :on-contact-click="() => showTeamBio(member)"
+            />
           </div>
         </section>
 
         <section class="space-y-3 border-t border-slate-200 pt-8 dark:border-slate-800">
           <h2 class="m-0 text-xl font-semibold tracking-normal text-slate-900 dark:text-white">Important Disclaimer</h2>
-          <p class="max-w-4xl text-justify text-sm leading-6 text-slate-500 dark:text-slate-400">
+          <p class="max-w-4xl text-justify text-sm leading-6 text-slate-500 dark:text-slate-300">
             Symply provides general health information and guidance for educational purposes.
             It does not replace professional medical advice, diagnosis, or treatment.
             Assessment results should not be considered a definitive medical diagnosis.
@@ -119,20 +90,58 @@
         </section>
       </div>
     </main>
+
+    <Teleport to="body">
+      <Transition name="team-bio">
+        <div
+          v-if="activeTeamBio"
+          class="fixed inset-0 z-[1300] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="`Biography of ${activeTeamBio.name}`"
+          @click.self="closeTeamBio"
+        >
+          <section class="team-bio-dialog max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[var(--symply-border)] bg-[var(--symply-card-bg)] p-6 text-[var(--symply-text-primary)] shadow-2xl">
+            <header class="mb-4 flex items-start justify-between gap-4 border-b border-[var(--symply-border)] pb-4">
+              <div>
+                <p class="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--symply-primary)]">Biography</p>
+                <h3 class="m-0 text-lg font-semibold leading-snug text-[var(--symply-text-primary)]">{{ activeTeamBio.name }}</h3>
+                <p v-if="activeTeamBio.title" class="m-0 mt-1 text-sm text-[var(--symply-text-muted)]">{{ activeTeamBio.title }}</p>
+              </div>
+              <button
+                class="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-[var(--symply-border)] bg-transparent text-[var(--symply-text-secondary)] transition hover:border-[var(--symply-primary)] hover:text-[var(--symply-primary)]"
+                type="button"
+                aria-label="Close biography"
+                @click="closeTeamBio"
+              >
+                <v-icon icon="mdi-close" size="18" aria-hidden="true" />
+              </button>
+            </header>
+            <div class="team-bio-content text-justify">
+              <p v-for="(paragraph, index) in activeTeamBio.bio" :key="index" class="text-justify text-sm leading-6 text-[var(--symply-text-secondary)]">{{ paragraph }}</p>
+            </div>
+          </section>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { nextTick, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import ProfileCard from '~/components/ProfileCard.vue'
 
 const router = useRouter()
 const activeTeamBio = ref(null)
-const teamBioPosition = ref({ top: 16, left: 16 })
 
 const teamMembers = [
   {
     id: 'jean',
+    title: 'Team Leader',
+    handle: 'jeanpangan',
+    status: 'Online',
+    statusColor: '#22c55e',
     name: 'Jean Arren S. Pangan',
     photo: '/team/jean-arren-pangan.png',
     bio: [
@@ -142,6 +151,10 @@ const teamMembers = [
   },
   {
     id: 'john-paul',
+    title: '',
+    handle: 'johnguinto',
+    status: 'Online',
+    statusColor: '#22c55e',
     name: 'John Paul Q. Guinto',
     photo: '/team/john-paul-guinto.png',
     bio: [
@@ -151,6 +164,10 @@ const teamMembers = [
   },
   {
     id: 'helary-joy',
+    title: '',
+    handle: 'helaryjoy',
+    status: 'Online',
+    statusColor: '#22c55e',
     name: 'Helary Joy B. Canilao',
     photo: '/team/helary-joy-canilao.png',
     photoPosition: 'center',
@@ -161,6 +178,10 @@ const teamMembers = [
   },
   {
     id: 'larissa',
+    title: '',
+    handle: 'larissagarcia',
+    status: 'Online',
+    statusColor: '#22c55e',
     name: 'Larissa Ann Juliette C. Garcia',
     photo: '/team/larissa-ann-juliette-garcia.png',
     bio: [
@@ -170,6 +191,10 @@ const teamMembers = [
   },
   {
     id: 'erica-mae',
+    title: '',
+    handle: 'ericamarcelo',
+    status: 'Online',
+    statusColor: '#22c55e',
     name: 'Erica Mae G. Marcelo',
     photo: '/team/erica-mae-marcelo.png',
     bio: [
@@ -179,6 +204,10 @@ const teamMembers = [
   },
   {
     id: 'frances-mikaela',
+    title: '',
+    handle: 'francessantos',
+    status: 'Online',
+    statusColor: '#22c55e',
     name: 'Frances Mikaela C. Santos',
     photo: '/team/frances-mikaela-santos.png',
     bio: [
@@ -188,64 +217,12 @@ const teamMembers = [
   },
 ]
 
-function showTeamBio(member, event) {
-  const wrapper = event.currentTarget.closest('.team-photo-wrap')
-  const trigger = wrapper.getBoundingClientRect()
-  const panelWidth = Math.min(440, window.innerWidth - 32)
-  const margin = 16
-
-  let left = trigger.right + 12
-  if (left + panelWidth > window.innerWidth - margin) {
-    left = trigger.left - panelWidth - 12
-  }
-  left = Math.max(margin, Math.min(left, window.innerWidth - panelWidth - margin))
-
-  teamBioPosition.value = { top: 0, left: left - trigger.left }
-  activeTeamBio.value = member.id
-
-  nextTick(() => {
-    if (activeTeamBio.value !== member.id) return
-
-    const panel = document.getElementById(`team-bio-${member.id}`)
-    if (!panel) return
-
-    const panelHeight = panel.getBoundingClientRect().height
-    const maxTop = window.innerHeight - panelHeight - margin
-    const top = Math.max(margin, Math.min(trigger.top, maxTop))
-    teamBioPosition.value = {
-      top: top - trigger.top,
-      left: left - trigger.left,
-    }
-  })
-}
-
-function toggleTeamBio(member, event) {
-  if (window.matchMedia('(hover: none)').matches && activeTeamBio.value === member.id) {
-    closeTeamBio()
-    return
-  }
-
-  showTeamBio(member, event)
-}
-
-function handleTeamBioHover(member, event) {
-  if (!window.matchMedia('(hover: none)').matches) {
-    showTeamBio(member, event)
-  }
-}
-
-function hideTeamBio() {
-  activeTeamBio.value = null
+function showTeamBio(member) {
+  activeTeamBio.value = member
 }
 
 function closeTeamBio() {
-  hideTeamBio()
-}
-
-function handleTeamBioFocusOut(event) {
-  if (!event.currentTarget.contains(event.relatedTarget)) {
-    hideTeamBio()
-  }
+  activeTeamBio.value = null
 }
 
 function goBack() {
@@ -262,13 +239,6 @@ useHead({
 </script>
 
 <style scoped>
-.team-bio-dialog {
-  position: absolute;
-  z-index: 1200;
-  width: min(440px, calc(100vw - 2rem));
-  overflow: visible;
-}
-
 .team-bio-content p {
   margin: 0;
   text-align: justify;
@@ -294,9 +264,5 @@ useHead({
 .team-bio-leave-from {
   opacity: 1;
   transform: translateY(0);
-}
-
-.team-member-block p + p {
-  margin-top: 0.8rem;
 }
 </style>

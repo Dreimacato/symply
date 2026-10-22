@@ -66,6 +66,12 @@
                       {{ sign }}
                     </li>
                   </ul>
+                  <!-- The symptom's own red-flags copy is a description, not a list -->
+                  <div
+                    v-if="getTriageResult(symptom)?.redFlagsText"
+                    class="red-flags-text"
+                    v-html="formatContent(getTriageResult(symptom).redFlagsText)"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -102,12 +108,21 @@
                 <span class="triage-detail-label">Recommended Next Step:</span>
                 <span class="triage-detail-value">{{ getTriageResult(symptom).nextStep }}</span>
               </div>
-              <div v-if="getTriageResult(symptom).warningSigns?.length" class="triage-detail-row">
+              <div
+                v-if="getTriageResult(symptom).warningSigns?.length || getTriageResult(symptom).redFlagsText"
+                class="triage-detail-row"
+              >
                 <span class="triage-detail-label">Warning Signs to Watch For:</span>
                 <div class="triage-detail-value">
-                  <ul class="warning-signs-list">
+                  <ul v-if="getTriageResult(symptom).warningSigns?.length" class="warning-signs-list">
                     <li v-for="sign in getTriageResult(symptom).warningSigns" :key="sign">{{ sign }}</li>
                   </ul>
+                  <!-- The symptom's own red-flags copy is a description, not a list -->
+                  <div
+                    v-if="getTriageResult(symptom).redFlagsText"
+                    class="red-flags-text"
+                    v-html="formatContent(getTriageResult(symptom).redFlagsText)"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -186,50 +201,85 @@ function evaluateSymptomTriage(symptom) {
   return evaluateTriage(symptom, answers)
 }
 
-/* Parse content with bullet points and convert to proper HTML lists */
+/* Turn plain-text content into HTML.
+   Rules:
+   - Content that already ships HTML passes through untouched.
+   - A line is only a bullet when it starts with an explicit marker
+     (•, * or a dash followed by whitespace). A bare "-" (no space) is
+     prose, not a bullet, so hyphenated words and em-dash sentences are
+     never turned into list items.
+   - Lines that are NOT bullets stay paragraphs. Previously they were
+     swallowed by the nearest bullet (or dropped entirely when they came
+     before the first one), which turned plain descriptions into bullet
+     lists and silently deleted text.
+   - Consecutive bullet lines group into one <ul>; a blank line ends it. */
 function formatContent(text) {
   if (!text) return ''
 
-  // First, check if the text already contains HTML tags
-  if (text.includes('<ul>') || text.includes('<ol>') || text.includes('<li>')) {
+  if (/<(ul|ol|li|p|br|strong|em)\b/i.test(text)) {
     return text
   }
 
-  const lines = text.split('\n')
-  const hasBullets = lines.some(line => {
-    const trimmed = line.trim()
-    return trimmed.startsWith('•') || trimmed.startsWith('*') || trimmed.startsWith('-')
-  })
+  const BULLET_RE = /^(?:[•*]|[-–—])\s+(.*)$/
+  const ORDERED_RE = /^(\d+)[.)]\s+(.*)$/
 
-  if (hasBullets) {
-    const listItems = []
-    let currentItem = ''
+  const html = []
+  let paragraph = []
+  let bullets = null
+  let ordered = null
 
-    for (const line of lines) {
-      const trimmed = line.trim()
-
-      if (trimmed.startsWith('•') || trimmed.startsWith('*') || trimmed.startsWith('-')) {
-        if (currentItem) {
-          listItems.push(currentItem)
-        }
-        currentItem = trimmed.slice(1).trim()
-      } else {
-        if (currentItem) {
-          currentItem += ' ' + trimmed
-        }
-      }
-    }
-
-    if (currentItem) {
-      listItems.push(currentItem)
-    }
-
-    if (listItems.length > 0) {
-      return '<ul>' + listItems.map(item => `<li>${item}</li>`).join('') + '</ul>'
+  const flushParagraph = () => {
+    if (paragraph.length) {
+      html.push(`<p>${paragraph.join(' ')}</p>`)
+      paragraph = []
     }
   }
+  const flushLists = () => {
+    if (bullets && bullets.length) {
+      html.push(`<ul>${bullets.map((item) => `<li>${item}</li>`).join('')}</ul>`)
+    }
+    if (ordered && ordered.length) {
+      html.push(`<ol>${ordered.map((item) => `<li>${item}</li>`).join('')}</ol>`)
+    }
+    bullets = null
+    ordered = null
+  }
 
-  return `<p>${text}</p>`
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim()
+
+    if (!line) {
+      flushParagraph()
+      flushLists()
+      continue
+    }
+
+    const bullet = line.match(BULLET_RE)
+    if (bullet) {
+      flushParagraph()
+      if (ordered) flushLists()
+      if (!bullets) bullets = []
+      bullets.push(bullet[1])
+      continue
+    }
+
+    const numbered = line.match(ORDERED_RE)
+    if (numbered) {
+      flushParagraph()
+      if (bullets) flushLists()
+      if (!ordered) ordered = []
+      ordered.push(numbered[2])
+      continue
+    }
+
+    flushLists()
+    paragraph.push(line)
+  }
+
+  flushParagraph()
+  flushLists()
+
+  return html.join('') || `<p>${text}</p>`
 }
 
 onMounted(async () => {
@@ -330,7 +380,8 @@ const overallTriageLevel = computed(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--symply-bg-app);
+  /* Transparent so the global Arctic Frost shows through (light + dark) */
+  background: transparent;
 }
 
 /* ─── Content Layout ────────────────────────────────────────────────────────── */
@@ -462,6 +513,50 @@ const overallTriageLevel = computed(() => {
 .triage-next-step {
   text-align: justify;
   text-justify: inter-word;
+}
+
+/* Lists produced by formatContent() */
+.section-text ul,
+.section-text ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.35rem;
+}
+
+.section-text li {
+  margin-bottom: 0.35rem;
+}
+
+.section-text li:last-child {
+  margin-bottom: 0;
+}
+
+.section-text li::marker {
+  color: var(--symply-primary);
+  font-weight: 700;
+}
+
+/* The symptom's red-flags copy renders as prose paragraphs, not bullets */
+.red-flags-text p {
+  margin: 0;
+}
+
+.red-flags-text p + p {
+  margin-top: 0.55rem;
+}
+
+.red-flags-text ul,
+.red-flags-text ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.35rem;
+}
+
+.red-flags-text li {
+  margin-bottom: 0.35rem;
+}
+
+.red-flags-text li::marker {
+  color: var(--symply-primary);
+  font-weight: 700;
 }
 
 /* ─── Empty State ───────────────────────────────────────────────────────────── */
@@ -776,6 +871,45 @@ const overallTriageLevel = computed(() => {
 .warning-signs-list li {
   margin-bottom: 4px;
   color: var(--symply-text-secondary);
+}
+
+/* Prose that follows a matched-signs list */
+.triage-detail-value .red-flags-text {
+  margin-top: 6px;
+  color: var(--symply-text-secondary);
+}
+
+/* ─── Justified typography ───────────────────────────────────────────────────
+   Every text block on this page shares one justified rhythm. This block
+   lives near the end of the stylesheet on purpose: .triage-next-step and
+   .triage-detail-label are declared later than the earlier combined
+   rule, so a consolidated block here is what actually wins for them. */
+.page-title,
+.page-description,
+.symptom-title,
+.body-source,
+.section-title,
+.section-text,
+.section-text p,
+.section-text li,
+.red-flags-text,
+.red-flags-text p,
+.red-flags-text li,
+.warning-signs-list,
+.warning-signs-list li,
+.triage-level-label,
+.triage-next-step,
+.emergency-notice,
+.triage-reason,
+.triage-detail-label,
+.triage-detail-value {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* The empty state is a centered UI panel, not running copy. */
+.empty-state {
+  text-align: center;
 }
 
 @media (max-width: 640px) {

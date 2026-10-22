@@ -391,10 +391,51 @@ const SPECIALTY_FILTERS = [
   { value: 'Pediatrics', label: 'Pediatrics' },
 ]
 const specialtyFilter = ref('all')
+
+/* Short place name derived from what the user typed / picked on the Info page.
+   Nominatim returns e.g. "Arayat, Pampanga, Central Luzon, 2012, Philippines"
+   or "A. Consunji St, Brgy X, San Fernando, Pampanga, Central Luzon, 2000,
+   Philippines". Drop the country and postal code, then keep the city and
+   province: with 4+ parts the last one is the region, so skip it and keep
+   the last two; otherwise keep the first two. Free-text input such as
+   "Manila" also works. */
+const doctorArea = computed(() => {
+  const raw = (userLocation.value || '').trim()
+  if (!raw) return ''
+  let parts = raw.split(',').map((part) => part.trim()).filter(Boolean)
+  if (parts.length > 1) parts = parts.slice(0, -1) /* country */
+  parts = parts.filter((part) => !/^\d[\d\s-]*$/.test(part)) /* postal codes */
+  if (!parts.length) return raw
+  if (parts.length >= 4) return parts.slice(-3, -1).join(', ')
+  return parts.slice(0, 2).join(', ')
+})
+
+/* Generic clinic names used once the location is known, so a user in another
+   city does not see San Fernando-specific clinics. */
+const CLINIC_TYPES = {
+  'San Fernando City Health Center': 'City Health Center',
+  'Navarro–Mallari Charity Clinic': 'Community Charity Clinic',
+  'Santos Clinic': 'Family Clinic',
+  'Saint Ferdinand Medical Arts Building': 'Medical Arts Building',
+}
+
+/* Doctors with the address (and clinic names) following the user's location.
+   Falls back to the original sample entries when no location was entered. */
+const localizedDoctors = computed(() => {
+  const area = doctorArea.value
+  if (!area) return DOCTORS
+  const place = area.split(',')[0].trim()
+  return DOCTORS.map((doctor) => ({
+    ...doctor,
+    clinic: `${place} ${CLINIC_TYPES[doctor.clinic] || doctor.clinic}`,
+    address: area,
+  }))
+})
+
 const filteredDoctors = computed(() =>
   specialtyFilter.value === 'all'
-    ? DOCTORS
-    : DOCTORS.filter((doctor) => doctor.specialty === specialtyFilter.value)
+    ? localizedDoctors.value
+    : localizedDoctors.value.filter((doctor) => doctor.specialty === specialtyFilter.value)
 )
 const activeSpecialtyLabel = computed(
   () => SPECIALTY_FILTERS.find((option) => option.value === specialtyFilter.value)?.label || ''
@@ -537,7 +578,8 @@ onMounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--symply-bg-app);
+  /* Transparent so the global Arctic Frost shows through (light + dark) */
+  background: transparent;
 }
 
 /* ─── Content Layout ────────────────────────────────────────────────────────── */
@@ -1307,7 +1349,8 @@ onMounted(() => {
      light in dark mode (location card, badges, facility list, no-facilities,
      summary drawer, chart, buttons, map). */
 :root[data-theme='dark'] .where-to-get-help-page {
-  background: var(--symply-bg-app);
+  /* Transparent so the global Arctic Frost shows through in dark mode */
+  background: transparent;
 }
 :root[data-theme='dark'] .content-wrapper,
 :root[data-theme='dark'] .content-container {

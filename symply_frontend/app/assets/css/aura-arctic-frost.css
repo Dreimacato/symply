@@ -1,0 +1,252 @@
+/* Arctic Frost (dark) / Ocean Depth (light) - Aura background
+   ==========================================================================
+   Light theme uses the "Ocean Depth" aura:
+   - Base color lives on the PAGE (body), NOT on the .aura containers.
+      Light: #faf8f2 with the ocean layers composited over it.
+      Dark:  #100e0b with `screen` layers over dim blue sources (see the
+      dark-theme block below for why hard-light/white cannot be used).
+    - Layers use `mix-blend-mode` and composite against whatever is behind
+      them - the containers must stay transparent (no background-color, no
+      isolation that would cut them off from the page).
+    - The global fixed layers sit behind ALL page content (z-index 0),
+      so opaque page cards/sections don't paint over them.
+    - Content sits ABOVE the layers (position: relative; z-index: 1).
+  */
+
+/* Light theme page base. Body carries #faf8f2; wrappers stay TRANSPARENT so
+   the fixed multiply layers (z-index 0, behind content) remain visible.
+   `html` is included so the canvas keeps the same base color when the body
+   box is shorter than the viewport (html background wins the propagation). */
+:root:not([data-theme='dark']) body,
+:root:not([data-theme='dark']) html {
+  background-color: #faf8f2;
+}
+
+:root:not([data-theme='dark']) .symply-main,
+:root:not([data-theme='dark']) .v-application,
+:root:not([data-theme='dark']) .v-main,
+:root:not([data-theme='dark']) .v-main__wrap {
+  /* !important: beats Vuetify / theme.css `background ... !important` */
+  background-color: transparent !important;
+}
+
+/* Dark theme page base (spec: #100e0b). Wrappers stay TRANSPARENT so the
+   fixed screen layers remain visible. */
+:root[data-theme='dark'] body,
+:root[data-theme='dark'] html {
+  background-color: #100e0b;
+}
+
+:root[data-theme='dark'] .symply-main,
+:root[data-theme='dark'] .v-application,
+:root[data-theme='dark'] .v-main,
+:root[data-theme='dark'] .v-main__wrap {
+  /* !important: beats Vuetify / theme.css `background ... !important` */
+  background-color: transparent !important;
+}
+
+/* Let the frost show through full-page roots (both themes).
+   Page roots render as direct children of Vuetify's .v-main__wrap (Vue
+   Transition/NuxtPage add no DOM wrapper). Only this top level goes
+   transparent - cards/sections nested deeper keep their own (opaque)
+   surfaces for readability. Header/footer live outside <v-main>, untouched.
+   Specificity notes: Vue scoped page styles are 0-2-0
+   (.page[data-v-xxx]), so these use 0-3-0+ to win regardless of order.
+   Unlayered author CSS also beats Tailwind's layered bg-* utilities. */
+.v-main__wrap > *,
+.v-main__wrap > .symply-info-page,
+.v-main__wrap > .about-page,
+.v-main__wrap > .symply-bodymap-page,
+.v-main__wrap > .body-detail-page,
+.v-main__wrap > .what-you-can-do-page,
+.v-main__wrap > .where-to-get-help-page {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* Global fixed backdrop layers: rendered once in the layout, behind everything.
+   Each layer is position:fixed WITHOUT a stacking-context wrapper around them,
+   so `mix-blend-mode` composites against the page base behind
+   (light #faf8f2 / dark #100e0b). pointer-events:none + aria-hidden so they
+   never block content.
+   NOTE: `.aura-layer.aura-layer--fixed` (0-2-0) must beat the generic
+   `.aura-layer` rule below (0-1-0), otherwise position falls back to
+   absolute and the backdrop scrolls away with the page. */
+.aura-layer.aura-layer--fixed {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  /* NO isolation on any ancestor - it would cut off blending against the page */
+}
+
+/* Page content, header AND footer paint above the fixed layers */
+.symply-main,
+.v-main__wrap,
+.symply-footer,
+.v-toolbar,
+.v-app-bar {
+  position: relative;
+  z-index: 1;
+}
+
+/* Header/app-bar seamless + NOT fixed: scrolls away with the page.
+   Transparent shell + no border/shadow in BOTH themes so the frost flows
+   straight behind it. Must beat Vuetify's own `.bg-surface` / border-b
+   utilities, hence !important.
+   `position: relative` (not static) keeps it in normal flow so it still
+   scrolls away, while its z-index:1 stacking context paints the header
+   above the z-index:0 fixed aura layers. */
+.symply-app-bar {
+  position: relative !important;
+}
+
+.v-toolbar,
+.v-app-bar,
+.v-toolbar__content,
+.v-toolbar__extension {
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+.v-toolbar::before,
+.v-app-bar::before,
+.v-toolbar::after,
+.v-app-bar::after {
+  display: none !important;
+  border: none !important;
+}
+
+/* Footer shell goes transparent (both themes) so the same frost flows
+   behind header + main + footer with no seam. The inner .footer-bottom
+   panel is transparent too, otherwise it cuts the frost and shows a
+   hard rectangle edge (a flat darker block in dark mode). */
+.symply-footer,
+.symply-footer .footer-container,
+.symply-footer .footer-bottom {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.symply-footer {
+  border-top-color: transparent !important;
+}
+
+/* Section/embedded variant (inside normal page flow) */
+.aura-bg {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh; /* absolute layers contribute 0px height on their own */
+  /* NO background-color, NO isolation - layers blend against the page behind */
+}
+
+.aura-bg--section {
+  min-height: 0;
+}
+
+.aura-layer {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(0);
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Light theme - "Ocean Depth" aura.
+   Layer 1: linear gradient, mix-blend-mode normal, no blur.
+   Layer 2: radial gradient, mix-blend-mode multiply - the spec's `screen`
+   blend is swapped for a light surface so the glow keeps its color instead
+   of washing out - blur 125px on mobile, 180px on desktop.
+   Layer 1's stops carry 26% alpha so the #faf8f2 backlight stays light
+   underneath (the spec's "keep the backlight light" rule). At full opacity
+   the ocean gradient buries the page and the light theme's dark text can no
+   longer hold a readable contrast ratio against it. */
+:root:not([data-theme='dark']) .aura-layer-1 {
+  mix-blend-mode: normal;
+  filter: none;
+  background: linear-gradient(
+    145deg,
+    rgba(2, 11, 18, 0.26) 0%,
+    rgba(7, 48, 71, 0.26) 38%,
+    rgba(7, 89, 133, 0.26) 68%,
+    rgba(14, 116, 144, 0.26) 100%
+  );
+}
+
+:root:not([data-theme='dark']) .aura-layer-2 {
+  mix-blend-mode: multiply;
+  filter: blur(125px);
+  background: radial-gradient(
+    ellipse 55% 40% at 33% 52%,
+    rgba(34, 211, 238, 0.24) 0%,
+    rgba(14, 116, 144, 0.1) 48%,
+    transparent 75%
+  );
+}
+
+/* Dark theme frost.
+   The layers MUST NOT blow out to white here: `hard-light` with a white
+   source resolves to screen(backdrop, 1) = pure white, so the previous
+   hard-light/soft-light + white gradients turned the lower ~70% of the
+   viewport into a solid white sheet and left the light-theme text
+   (--symply-text-*) unreadable on every page.
+   Dark mode therefore uses dim, translucent blue sources with `screen`,
+   which lifts the #100e0b base to a soft arctic blue (peak luminance
+   ~0.05) - dark enough for light text to keep a >= 5:1 contrast ratio
+   everywhere, while still reading as a frosted backdrop. */
+:root[data-theme='dark'] .aura-layer-1 {
+  mix-blend-mode: screen;
+  filter: blur(90px);
+  background: linear-gradient(
+    rgba(0, 0, 0, 0) 0%,
+    rgba(28, 62, 112, 0.4) 28%,
+    rgba(40, 76, 130, 0.45) 62%,
+    rgba(26, 62, 116, 0.38) 84%,
+    rgba(14, 36, 76, 0.28) 100%
+  );
+}
+
+:root[data-theme='dark'] .aura-layer-2 {
+  mix-blend-mode: screen;
+  filter: blur(90px);
+  background: linear-gradient(
+    rgba(0, 0, 0, 0) 0%,
+    rgba(22, 50, 96, 0.3) 34%,
+    rgba(30, 60, 110, 0.35) 66%,
+    rgba(20, 52, 100, 0.3) 84%,
+    rgba(12, 32, 70, 0.22) 100%
+  );
+}
+
+/* Page content must sit above the absolute layers */
+.aura-content {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  :root[data-theme='dark'] .aura-layer-1,
+  :root[data-theme='dark'] .aura-layer-2 {
+    filter: blur(130px);
+  }
+
+  :root:not([data-theme='dark']) .aura-layer-2 {
+    filter: blur(180px);
+  }
+}
+
+/* Opt-in transparency for pages that want the frost to show through an
+   embedded <AuraBackground> wrapper (instead of the global backdrop).
+   Add `aura-page-transparent` to a page root to let the frost show. */
+.aura-page-transparent {
+  background: transparent !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aura-layer {
+    will-change: auto;
+  }
+}

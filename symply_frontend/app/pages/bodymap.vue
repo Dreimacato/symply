@@ -1638,7 +1638,8 @@ useHead({ title: 'Symply' })
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(to bottom, #FFFFFF 0%, #F8FAFB 100%);
+  /* Transparent so the global Arctic Frost shows through (light + dark) */
+  background: transparent;
   color: #1E293B;
   font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
@@ -1731,7 +1732,9 @@ useHead({ title: 'Symply' })
 .control-btn--active { border-color: #06B6D4; background-color: #F0FDFF; }
 
 .action-bar {
-  display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; border-top: 1px solid #E2E8F0; background-color: #FFFFFF;
+  display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; border-top: 1px solid #E2E8F0;
+  /* Transparent so the global Arctic Frost shows through (light + dark) */
+  background-color: transparent;
 }
 .action-btn {
   display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 500; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; transition: all 0.2s;

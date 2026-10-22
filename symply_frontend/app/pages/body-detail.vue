@@ -395,7 +395,8 @@ function goBack() {
 /* ─── Core Page ─────────────────────────────────────────────────────────────── */
 .body-detail-page {
   min-height: 100vh;
-  background: var(--symply-bg-app);
+  /* Transparent so the global Arctic Frost shows through (light + dark) */
+  background: transparent;
   padding: 24px;
 }
 
@@ -609,7 +610,8 @@ function goBack() {
      light in dark mode (back button, body view cards, info cards, info icons,
      region selection, charts). */
 :root[data-theme='dark'] .body-detail-page {
-  background: var(--symply-bg-app);
+  /* Transparent so the global Arctic Frost shows through in dark mode */
+  background: transparent;
 }
 :root[data-theme='dark'] .page-header {
   background: var(--symply-card-bg);

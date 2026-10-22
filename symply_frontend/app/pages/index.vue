@@ -1,5 +1,5 @@
 <template>
-  <div class="symply-info-page min-h-screen bg-[var(--symply-bg-app)] text-[var(--symply-text-primary)]">
+  <div class="symply-info-page aura-page-transparent min-h-screen text-[var(--symply-text-primary)]">
     <!-- Clean Minimal Header -->
     <!-- <header class="clean-header">
       <div class="header-container">
@@ -11,7 +11,10 @@
       <div class="content-container w-full max-w-2xl">
 
         <div class="text-center intro-section mb-8">
-          <h1 class="main-heading m-0 text-3xl font-semibold leading-tight tracking-normal text-[var(--symply-text-primary)] sm:text-4xl">Explore possible conditions and treatment options for your symptoms.</h1>
+          <RotatingText />
+          <p class="intro-subtitle text-center m-0 mt-4 text-base text-[var(--symply-text-secondary)] sm:text-lg">
+            Tell us a little about yourself to get started.
+          </p>
         </div>
 
         <div class="form-grid grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
@@ -91,6 +94,7 @@ const router = useRouter()
 const age = ref('')
 const sex = ref('')
 const address = ref('')
+const containerRef = ref(null)
 const { createUserProfile } = useStrapi()
 
 // Local storage keys for profile data
@@ -167,7 +171,14 @@ useHead({
 
 <style scoped>
 .symply-info-page {
-  background: linear-gradient(135deg, var(--symply-footer-bg) 0%, var(--symply-bg-app) 58%, color-mix(in srgb, var(--symply-footer-bg) 45%, var(--symply-bg-app)) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.main-content,
+.main-content .content-container {
+  position: relative;
+  z-index: 1;
 }
 
 .main-heading {

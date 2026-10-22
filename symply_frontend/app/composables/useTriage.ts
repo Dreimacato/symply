@@ -10,7 +10,15 @@ export interface TriageResult {
   levelLabel: string
   reason: string
   nextStep: string
+  /** Individually matched warning signs - a genuine list. */
   warningSigns: string[]
+  /**
+   * The symptom's "Red Flags and Warning Signs" copy from Strapi.
+   * This is a rich-text DESCRIPTION (blocks joined with newlines), not a
+   * list, so it must stay prose. It is rendered separately from
+   * `warningSigns` instead of being shredded into bullet items.
+   */
+  redFlagsText: string
   shouldShowEmergencyGuidance: boolean
 }
 
@@ -565,9 +573,10 @@ export function evaluateTriage(symptom: SymptomData, answers: FollowUpAnswers): 
     nextStep = 'Monitor symptoms and follow home care guidance. Seek medical care if symptoms worsen or new warning signs appear.'
   }
 
-  // Compile all warning signs from symptom data too
-  const symptomWarningSigns = (symptom.redFlags || symptom.warningSigns || '').split(/[,\n;]/).map(s => s.trim()).filter(Boolean)
-  allWarningSigns.push(...symptomWarningSigns)
+  // The symptom's red-flags copy is a rich-text description, not a list.
+  // Keep it intact as prose - splitting it on commas/newlines used to turn
+  // a single description into a run of meaningless bullet fragments.
+  const redFlagsText = (symptom.redFlags || symptom.warningSigns || '').trim()
 
   return {
     level,
@@ -575,6 +584,7 @@ export function evaluateTriage(symptom: SymptomData, answers: FollowUpAnswers): 
     reason: reasons.join('; '),
     nextStep,
     warningSigns: [...new Set(allWarningSigns)],
+    redFlagsText,
     shouldShowEmergencyGuidance: level === 'emergency'
   }
 }

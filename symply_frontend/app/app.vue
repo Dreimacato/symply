@@ -42,8 +42,8 @@ const transitionName = computed(() => {
   --symply-footer-bg: #edf7f6;
   --symply-border: #E2E8F0;
   --symply-text-primary: #0F172A;
-  --symply-text-secondary: #475569;
-  --symply-text-muted: #94A3B8;
+  --symply-text-secondary: #334155;
+  --symply-text-muted: #64748B;
   --symply-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --symply-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --symply-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -63,12 +63,12 @@ const transitionName = computed(() => {
   --symply-primary-light: rgba(34, 211, 238, 0.14);
   --symply-primary-bg: #38BDF8;
   --symply-bg-app: #0B1220;
-  --symply-card-bg: #121B2B;
+  --symply-card-bg: #16223A;
   --symply-footer-bg: #0d1626;
-  --symply-border: #243044;
-  --symply-text-primary: #E6EDF7;
-  --symply-text-secondary: #A7B4C6;
-  --symply-text-muted: #7C8CA1;
+  --symply-border: #2E3D57;
+  --symply-text-primary: #F2F7FF;
+  --symply-text-secondary: #C3D0E0;
+  --symply-text-muted: #B4C2D4;
   --symply-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --symply-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
   --symply-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.55), 0 4px 6px -2px rgba(0, 0, 0, 0.45);
@@ -186,6 +186,39 @@ p {
 .page-back-enter-active,
 .page-back-leave-active {
   transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* =========================================
+   Text slide-in
+   Every text element slides up into place whenever it is added to the page:
+   on route changes, and when modals, drawers, steps or filtered lists swap
+   their content (new DOM nodes replay the animation). Uses transform and
+   opacity only, so it is cheap and never shifts the layout. Reduced motion
+   is handled by the global rule below, which shortens all animations.
+========================================= */
+
+@keyframes symply-text-slide-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h1, h2, h3, h4, h5, h6,
+p, li, label, legend, figcaption, blockquote,
+th, td, dt, dd,
+.v-card-title, .v-card-subtitle, .v-card-text,
+.v-list-item-title, .v-list-item-subtitle, .v-chip__content, .v-alert__content {
+  animation: symply-text-slide-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Page changes: pure fade (no sideways slide) so it doesn't fight the
+   text's own slide-up */
+.page-enter-from,
+.page-leave-to,
+.page-forward-enter-from,
+.page-forward-leave-to,
+.page-back-enter-from,
+.page-back-leave-to {
+  transform: none !important;
 }
 
 /* =========================================

@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
 
-  css: ['~/assets/css/preline-about.css'],
+  css: ['~/assets/css/preline-about.css', '~/assets/css/aura-arctic-frost.css', '~/assets/css/profile-card.css'],
 
   runtimeConfig: {
     public: {
