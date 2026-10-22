@@ -47,12 +47,12 @@ const props = defineProps({
       'with health insights.',
     ],
   },
-  rotationInterval: { type: Number, default: 2000 },
-  staggerDuration: { type: Number, default: 0.025 },
+  rotationInterval: { type: Number, default: 4500 },
+  staggerDuration: { type: Number, default: 0.06 },
   staggerFrom: { type: String, default: 'last' },
 })
 
-const EXIT_MS = 350
+const EXIT_MS = 700 /* must match the rt-slide-out duration in the CSS */
 const index = ref(0)
 const leaving = ref(false)
 const animated = ref(false) /* false until the first swap (animatePresenceInitial=false) */
@@ -105,7 +105,7 @@ function next() {
 watch(index, () => nextTick(measure))
 
 onMounted(() => {
-  reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  /* reduceMotion stays false on purpose: the slide always runs */
   measure()
   document.fonts?.ready.then(measure)
   if (typeof ResizeObserver !== 'undefined' && contentRef.value) {
@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
   background-color: var(--rt-bg);
   color: var(--rt-fg);
   font-weight: 700;
-  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease, color 0.3s ease;
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease, color 0.3s ease;
 }
 
 .text-rotate-highlight-content {
@@ -205,10 +205,10 @@ onBeforeUnmount(() => {
 /* Slide up, staggered from the last letter: letters rise in from below the
    mask and leave upward (enter y 100% -> 0, exit y 0 -> -120%) */
 .text-rotate-active.is-animated .text-rotate-element {
-  animation: rt-slide-in 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) backwards;
+  animation: rt-slide-in 1s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .text-rotate-active.is-leaving .text-rotate-element {
-  animation: rt-slide-out 0.35s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+  animation: rt-slide-out 0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
 @keyframes rt-slide-in {
@@ -220,9 +220,6 @@ onBeforeUnmount(() => {
   to { transform: translateY(-120%); opacity: 0; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .text-rotate-highlight { transition: none; }
-  .text-rotate-active.is-animated .text-rotate-element { animation: none; }
-  .text-rotate-active.is-leaving .text-rotate-element { animation: none; opacity: 0; }
-}
+/* Intentionally no prefers-reduced-motion override: the slide is a core part
+   of the headline and must run even when the OS animation setting is off. */
 </style>

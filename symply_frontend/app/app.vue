@@ -207,7 +207,7 @@ p, li, label, legend, figcaption, blockquote,
 th, td, dt, dd,
 .v-card-title, .v-card-subtitle, .v-card-text,
 .v-list-item-title, .v-list-item-subtitle, .v-chip__content, .v-alert__content {
-  animation: symply-text-slide-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation: symply-text-slide-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* Page changes: pure fade (no sideways slide) so it doesn't fight the
@@ -235,15 +235,9 @@ th, td, dt, dd,
    Reduced motion
 ========================================= */
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* The global reduced-motion override was removed on purpose: it forced every
+   animation to 0.01ms, which disabled the rotating headline's slide and the
+   text slide-in on machines where the OS animation setting is off. */
 
 /* =========================================
    Utility
