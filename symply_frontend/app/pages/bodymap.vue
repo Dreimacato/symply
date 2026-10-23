@@ -1754,7 +1754,7 @@ useHead({ title: 'Symply' })
 .drawer-scrim-enter-active, .drawer-scrim-leave-active { transition: opacity 0.25s ease; }
 .drawer-scrim-enter-from, .drawer-scrim-leave-to { opacity: 0; }
 .side-drawer {
-  position: fixed; top: 0; left: 0; bottom: 0; width: 400px; max-width: 90vw; background: var(--symply-card-bg); z-index: 2000;
+  position: fixed; top: 0; left: 0; bottom: 0; width: 400px; max-width: 90vw; background: var(--symply-card-bg); z-index: 3000;
   display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
 }
 .drawer-slide-enter-active, .drawer-slide-leave-active { transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -1814,7 +1814,7 @@ useHead({ title: 'Symply' })
 
 /* Triage Modal Styles */
 .triage-modal-overlay {
-  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); z-index: 1950;
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); z-index: 10000;
   display: flex; align-items: center; justify-content: center; padding: 2rem;
 }
 .triage-modal-overlay-enter-active, .triage-modal-overlay-leave-active { transition: opacity 0.25s ease; }
@@ -1891,7 +1891,7 @@ useHead({ title: 'Symply' })
   border: 1px solid #E2E8F0;
   border-radius: 16px;
   box-shadow: 0 16px 60px rgba(0, 0, 0, 0.16);
-  z-index: 1960;
+  z-index: 10000;
   overflow: hidden;
   animation: panel-slide-in 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -2008,7 +2008,7 @@ useHead({ title: 'Symply' })
 /* Emergency theme */
 .triage-modal.emergency {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  z-index: 2000;
+  z-index: 10000;
   display: flex; flex-direction: column;
   background: white; border-radius: 16px; padding: 2rem; width: 100%; max-width: 480px;
   max-height: 90vh; overflow: hidden;
@@ -2024,7 +2024,7 @@ useHead({ title: 'Symply' })
 /* Urgent theme */
 .triage-modal.urgent {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  z-index: 2000;
+  z-index: 10000;
   display: flex; flex-direction: column;
   background: white; border-radius: 16px; padding: 2rem; width: 100%; max-width: 480px;
   max-height: 90vh; overflow: hidden;
