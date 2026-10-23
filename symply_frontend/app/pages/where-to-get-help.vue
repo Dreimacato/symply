@@ -434,13 +434,17 @@ const doctorArea = computed(() => {
   return parts.slice(0, 2).join(', ')
 })
 
-/* Country extracted from the user's raw location (e.g. "Arayat, Pampanga, Central Luzon, 2012, Philippines" → "Philippines") */
+/* Country extracted from the user's raw location (e.g. "Arayat, Pampanga, Central Luzon, 2012, Philippines" → "Philippines").
+   Only extracted when the input contains commas — free-text entries like "Manila" return empty so the full doctor
+   list is still shown for locations without a clear country boundary. */
 const doctorCountry = computed(() => {
   const raw = (userLocation.value || '').trim()
   if (!raw) return ''
+  if (!raw.includes(',')) return '' /* free text like "Manila" → show full list */
   let parts = raw.split(',').map((part) => part.trim()).filter(Boolean)
   parts = parts.filter((part) => !/^\d[\d\s-]*$/.test(part)) /* postal codes */
   return parts[parts.length - 1] || ''
+})
 })
 
 /* Generic clinic names used once the location is known, so a user in another
