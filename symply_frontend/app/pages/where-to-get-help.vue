@@ -84,8 +84,8 @@
                   {{ doctor.initials }}
                 </div>
                 <div class="doctor-list-info">
-                  <h3 class="facility-list-name doctor-list-name">{{ doctor.specialty }}</h3>
-                  <p class="doctor-clinic">{{ doctor.clinic }}</p>
+                  <h3 class="facility-list-name doctor-list-name">{{ doctor.name }}</h3>
+                  <p class="doctor-clinic">{{ doctor.specialty }} · {{ doctor.clinic }}</p>
                   <div class="doctor-list-meta">
                     <p class="doctor-list-detail doctor-list-location">
                       <v-icon icon="mdi-map-marker-outline" size="15" aria-hidden="true" />
@@ -275,6 +275,7 @@ const DOCTORS = [
   {
     id: 'doctor-gp-1',
     initials: 'GP',
+    name: 'Dr. Maria Santos',
     specialty: 'General Practitioner',
     clinic: 'San Fernando City Health Center',
     address: 'A. Consunji Street, San Fernando, Pampanga',
@@ -284,6 +285,7 @@ const DOCTORS = [
   {
     id: 'doctor-gp-2',
     initials: 'GP',
+    name: 'Dr. Pedro Navarro',
     specialty: 'General Practitioner',
     clinic: 'Navarro–Mallari Charity Clinic',
     address: 'San Fernando, Pampanga',
@@ -293,6 +295,7 @@ const DOCTORS = [
   {
     id: 'doctor-gp-3',
     initials: 'GP',
+    name: 'Dr. Rosa Santos',
     specialty: 'General Practitioner',
     clinic: 'Santos Clinic',
     address: 'San Fernando, Pampanga',
@@ -302,6 +305,7 @@ const DOCTORS = [
   {
     id: 'doctor-im-1',
     initials: 'IM',
+    name: 'Dr. Ignacio de la Cruz',
     specialty: 'Internal Medicine',
     clinic: 'Saint Ferdinand Medical Arts Building',
     address: 'San Fernando, Pampanga',
@@ -311,6 +315,7 @@ const DOCTORS = [
   {
     id: 'doctor-im-2',
     initials: 'IM',
+    name: 'Dr. Juan Perez',
     specialty: 'Internal Medicine',
     clinic: 'San Fernando City Health Center',
     address: 'A. Consunji Street, San Fernando, Pampanga',
@@ -320,6 +325,7 @@ const DOCTORS = [
   {
     id: 'doctor-im-3',
     initials: 'IM',
+    name: 'Dr. Miguel Santos',
     specialty: 'Internal Medicine',
     clinic: 'Santos Clinic',
     address: 'San Fernando, Pampanga',
@@ -329,6 +335,7 @@ const DOCTORS = [
   {
     id: 'doctor-fm-1',
     initials: 'FM',
+    name: 'Dr. Consuelo Reyes',
     specialty: 'Family Medicine',
     clinic: 'Saint Ferdinand Medical Arts Building',
     address: 'San Fernando, Pampanga',
@@ -338,6 +345,7 @@ const DOCTORS = [
   {
     id: 'doctor-fm-2',
     initials: 'FM',
+    name: 'Dr. Sergio Bautista',
     specialty: 'Family Medicine',
     clinic: 'Navarro–Mallari Charity Clinic',
     address: 'San Fernando, Pampanga',
@@ -347,6 +355,7 @@ const DOCTORS = [
   {
     id: 'doctor-fm-3',
     initials: 'FM',
+    name: 'Dr. Lourdes Castro',
     specialty: 'Family Medicine',
     clinic: 'San Fernando City Health Center',
     address: 'A. Consunji Street, San Fernando, Pampanga',
@@ -356,6 +365,7 @@ const DOCTORS = [
   {
     id: 'doctor-pd-1',
     initials: 'PD',
+    name: 'Dr. Teresa Cruz',
     specialty: 'Pediatrics',
     clinic: 'Santos Clinic',
     address: 'San Fernando, Pampanga',
@@ -365,6 +375,7 @@ const DOCTORS = [
   {
     id: 'doctor-pd-2',
     initials: 'PD',
+    name: 'Dr. Amando Ortega',
     specialty: 'Pediatrics',
     clinic: 'Saint Ferdinand Medical Arts Building',
     address: 'San Fernando, Pampanga',
@@ -374,6 +385,7 @@ const DOCTORS = [
   {
     id: 'doctor-pd-3',
     initials: 'PD',
+    name: 'Dr. Felicitas Magsanoc',
     specialty: 'Pediatrics',
     clinic: 'Navarro–Mallari Charity Clinic',
     address: 'San Fernando, Pampanga',
