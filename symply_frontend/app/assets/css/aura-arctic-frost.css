@@ -98,6 +98,7 @@
    above the z-index:0 fixed aura layers. */
 .symply-app-bar {
   position: relative !important;
+  z-index: 0;
 }
 
 .v-toolbar,
@@ -129,6 +130,7 @@
   background-color: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
+  z-index: 0;
 }
 
 .symply-footer {
