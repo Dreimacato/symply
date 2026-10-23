@@ -19,6 +19,7 @@ const OVERPASS_FAST_TIMEOUT_MS = 8000
 const OVERPASS_FULL_TIMEOUT_MS = 12000
 const FAST_RADIUS_METERS = 2000
 const FAST_MIN_RESULTS = 5
+const SERVER_FACILITIES_TIMEOUT_MS = 30000
 
 /* Nominatim's fair-use policy allows at most 1 request per second.
    Reserve a slot before every request so rapid typing or automated
@@ -320,6 +321,24 @@ export function useHealthMap() {
 
   const fastRadius = Math.min(FAST_RADIUS_METERS, radiusMeters)
   searchingFacilities.value = true
+
+  /* Preferred path: the Nuxt server route (/api/facilities) has a long
+     timeout and caching. Browser-side mirror racing below is the fallback. */
+  try {
+    const serverData = await $fetch('/api/facilities', {
+      query: { lat, lng, radius: radiusMeters },
+      timeout: SERVER_FACILITIES_TIMEOUT_MS
+    })
+    if (serverData && Array.isArray(serverData.elements)) {
+      const facilities = normalizeFacilities(serverData, lat, lng)
+      facilitiesCache.set(cacheKey, facilities)
+      writeFacilitiesLsCache(cacheKey, facilities)
+      searchingFacilities.value = false
+      return facilities
+    }
+  } catch (err) {
+    console.warn('[useHealthMap] Server facilities route failed, trying browser mirrors')
+  }
   /* Hedged requests: the full-radius query starts if the fast (2 km) query
      has not answered within OVERPASS_HEDGE_DELAY_MS (or as soon as it fails),
      instead of strictly after it. A sparse area or slow mirror no longer pays
