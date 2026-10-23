@@ -445,7 +445,6 @@ const doctorCountry = computed(() => {
   parts = parts.filter((part) => !/^\d[\d\s-]*$/.test(part)) /* postal codes */
   return parts[parts.length - 1] || ''
 })
-})
 
 /* Generic clinic names used once the location is known, so a user in another
    city does not see San Fernando-specific clinics. */
