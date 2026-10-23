@@ -101,8 +101,16 @@ const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.openstreetmap.ru/api/interpreter',
-  'https://z.overpass-api.de/api/interpreter'
+  'https://z.overpass-api.de/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter'
 ]
+
+/* Pause before re-racing the endpoints after they all fail fast (429/502) */
+const OVERPASS_RETRY_DELAY_MS = 700
+
+/* Start the full-radius query if the fast query is still pending after this */
+const OVERPASS_HEDGE_DELAY_MS = 1500
 
 /* Module-level caches shared across all useHealthMap() callers */
 const geocodeCache = new Map()
@@ -312,21 +320,49 @@ export function useHealthMap() {
 
   const fastRadius = Math.min(FAST_RADIUS_METERS, radiusMeters)
   searchingFacilities.value = true
+  /* Hedged requests: the full-radius query starts if the fast (2 km) query
+     has not answered within OVERPASS_HEDGE_DELAY_MS (or as soon as it fails),
+     instead of strictly after it. A sparse area or slow mirror no longer pays
+     fast-timeout + full-timeout, while quick answers still send only one query. */
+  const fullController = new AbortController()
+  let fullPromise = null
+  let hedgeTimer = null
+  const startFull = () => {
+    if (fullPromise || fastRadius >= radiusMeters) return
+    clearTimeout(hedgeTimer)
+    fullPromise = queryOverpassFast(buildOverpassQuery(lat, lng, radiusMeters), OVERPASS_FULL_TIMEOUT_MS, fullController.signal)
+    /* Prevent an unhandled rejection when the full query is aborted or unused */
+    fullPromise.catch(() => {})
+  }
+  hedgeTimer = setTimeout(startFull, OVERPASS_HEDGE_DELAY_MS)
+
   try {
     let fastData = null
     try {
       fastData = await queryOverpassFast(buildOverpassQuery(lat, lng, fastRadius), OVERPASS_FAST_TIMEOUT_MS)
     } catch (err) {
-      console.warn('[useHealthMap] Fast query failed, trying full radius')
+      console.warn('[useHealthMap] Fast query failed, waiting for full radius')
     }
+    clearTimeout(hedgeTimer)
     const fastCount = fastData && fastData.elements ? fastData.elements.length : 0
     if (fastData && (fastCount >= FAST_MIN_RESULTS || fastRadius >= radiusMeters)) {
+      fullController.abort()
       const facilities = normalizeFacilities(fastData, lat, lng)
       facilitiesCache.set(cacheKey, facilities)
       writeFacilitiesLsCache(cacheKey, facilities)
       return facilities
     }
-    const fullData = await queryOverpassFast(buildOverpassQuery(lat, lng, radiusMeters), OVERPASS_FULL_TIMEOUT_MS)
+    /* Few/no fast results and the hedge hasn't fired yet: start it now */
+    startFull()
+    if (!fullPromise) throw new Error('Nearby facilities request failed')
+    let fullData = null
+    try {
+      fullData = await fullPromise
+    } catch (err) {
+      /* Fall back to the few fast-query results rather than showing an error */
+      if (!fastData) throw err
+      fullData = fastData
+    }
     const facilities = normalizeFacilities(fullData, lat, lng)
     facilitiesCache.set(cacheKey, facilities)
     writeFacilitiesLsCache(cacheKey, facilities)
@@ -347,7 +383,24 @@ export function useHealthMap() {
     )
   }
 
-  async function queryOverpassFast(query, timeoutMs) {
+  async function queryOverpassFast(query, timeoutMs, externalSignal = null) {
+    const deadline = Date.now() + timeoutMs
+    try {
+      return await raceOverpassEndpoints(query, timeoutMs, externalSignal)
+    } catch (err) {
+      /* Public endpoints often reject instantly (429 rate limit / 502). If every
+         endpoint failed quickly and time remains, re-race once after a short pause
+         instead of surfacing an error. */
+      const remaining = deadline - Date.now() - OVERPASS_RETRY_DELAY_MS
+      if (externalSignal?.aborted || remaining < 2000) throw err
+      await new Promise((resolve) => setTimeout(resolve, OVERPASS_RETRY_DELAY_MS))
+      if (externalSignal?.aborted) throw err
+      console.warn('[useHealthMap] Retrying Overpass endpoints once')
+      return raceOverpassEndpoints(query, remaining, externalSignal)
+    }
+  }
+
+  async function raceOverpassEndpoints(query, timeoutMs, externalSignal = null) {
     /* Race every Overpass endpoint in parallel and take the first one that
        answers with usable data. Each request is bounded by an AbortController
        timeout, so a single slow/hanging endpoint (a 504 or a socket that never
@@ -357,19 +410,27 @@ export function useHealthMap() {
        endpoint wins", which is why the map used to take 8â€“40 s+ to load. */
     const OVERPASS_TIMEOUT_MS = timeoutMs
 
+    /* One controller per race: aborted by the timeout, by the caller, or as soon
+       as one endpoint wins, so the losing requests stop consuming bandwidth */
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS)
+    const onExternalAbort = () => controller.abort()
+    if (externalSignal) {
+      if (externalSignal.aborted) controller.abort()
+      else externalSignal.addEventListener('abort', onExternalAbort, { once: true })
+    }
+
     const attemptEndpoint = async (endpoint) => {
-      const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS)
       const start = Date.now()
       try {
         console.log('[useHealthMap] Trying Overpass endpoint:', endpoint)
         const response = await fetch(endpoint, {
           method: 'POST',
           body: new URLSearchParams({ data: query }),
-          headers: {
-            Accept: 'application/json',
-            'User-Agent': 'Symply/1.0'
-          },
+          /* Only CORS-safelisted headers, so browsers send a "simple" request
+             with no extra OPTIONS preflight round-trip (browsers manage
+             User-Agent themselves) */
+          headers: { Accept: 'application/json' },
           signal: controller.signal
         })
         if (!response.ok) {
@@ -378,10 +439,14 @@ export function useHealthMap() {
           throw new Error(`Nearby facilities request failed (${response.status})`)
         }
         const data = await response.json()
-        console.log('[useHealthMap] Response from', endpoint, '- status:', response.status, '- duration:', Date.now() - start, 'ms - elements:', data.elements?.length ?? 0)
+        if (!data || !Array.isArray(data.elements)) {
+          throw new Error('Nearby facilities response was malformed')
+        }
+        console.log('[useHealthMap] Response from', endpoint, '- status:', response.status, '- duration:', Date.now() - start, 'ms - elements:', data.elements.length)
         return data
-      } finally {
-        clearTimeout(timer)
+      } catch (err) {
+        console.warn('[useHealthMap] Endpoint failed:', endpoint, err?.message || err)
+        throw err
       }
     }
 
@@ -400,6 +465,11 @@ export function useHealthMap() {
       lastError =
         aggregateError.errors?.[0] ||
         new Error('Nearby facilities request failed')
+    } finally {
+      clearTimeout(timer)
+      if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort)
+      /* Cancel the endpoints that lost the race */
+      controller.abort()
     }
 
     if (!data) {

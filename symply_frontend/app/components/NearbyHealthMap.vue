@@ -96,7 +96,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useHealthMap, NEARBY_RADIUS_METERS } from '~/composables/useHealthMap'
-import 'leaflet/dist/leaflet.css'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
 const props = defineProps({
   address: {
@@ -133,9 +133,10 @@ const radiusKm = computed(() => Math.round((props.radiusMeters / 1000) * 10) / 1
 
 const { geocodeAddress, fetchNearbyFacilities } = useHealthMap()
 
-/* Leaflet lives in plain module-scope refs to avoid Vue proxy issues */
+/* MapLibre lives in plain module-scope refs to avoid Vue proxy issues */
 let map = null
-let L = null
+let maplibregl = null
+let resizeFrame = 0
 let userMarker = null
 let facilityMarkers = []
 let resizeObserver = null
@@ -187,6 +188,10 @@ async function load() {
   geoState.value = 'ready'
   resolvedPoint.value = point
 
+  /* Start the facilities request now so it runs alongside map setup
+     (MapLibre download + WebGL init) instead of waiting for it */
+  const facilitiesPromise = loadNearbyFacilities(point, token, false)
+
   await nextTick()
   if (token !== loadToken) return
 
@@ -194,84 +199,132 @@ async function load() {
   await ensureMap(point)
   if (token !== loadToken) return
 
-  await loadNearbyFacilities(point, token)
+  /* Draw any facilities that arrived before the map was ready */
+  const list = await facilitiesPromise
+  if (token !== loadToken) return
+  if (list && list.length > 0) renderFacilityMarkers(list)
+}
+
+const OSM_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
+    }
+  },
+  layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
 }
 
 async function ensureMap(point) {
   if (!mapEl.value) return
 
-  if (!L) {
-    L = await import('leaflet')
-    if (L && L.default) L = L.default
+  if (!maplibregl) {
+    const mod = await import('maplibre-gl')
+    maplibregl = mod.default || mod
   }
 
+  /* Container may have been re-rendered (loading state) or unmounted while importing */
+  if (!mapEl.value) return
+  if (map && map.getContainer() !== mapEl.value) destroyMap()
+
   if (!map) {
-    map = L.map(mapEl.value).setView([point.lat, point.lng], 14)
+    try {
+      map = new maplibregl.Map({
+        container: mapEl.value,
+        style: OSM_STYLE,
+        center: [point.lng, point.lat],
+        zoom: 14,
+        maxZoom: 19,
+        attributionControl: false,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false
+      })
+    } catch (e) {
+      console.warn('Map could not be initialised (WebGL unavailable?)', e)
+      map = null
+      return
+    }
+    map.touchZoomRotate.disableRotation()
+    map.keyboard.disableRotation()
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left')
+    map.addControl(new maplibregl.AttributionControl({ compact: false }), 'bottom-right')
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map)
-
-    userMarker = L.marker([point.lat, point.lng], {
-      icon: userIcon(),
-      keyboard: false,
-      title: 'Your location'
-    }).addTo(map)
-    userMarker.bindPopup('<strong>Your location</strong>')
+    userMarker = new maplibregl.Marker({ element: userIcon(), anchor: 'center' })
+      .setLngLat([point.lng, point.lat])
+      .setPopup(buildPopup('<strong>Your location</strong>'))
+      .addTo(map)
 
     facilityMarkers = []
 
-    /* Container may be zero-sized right after mount (e.g. inside transitions) */
-    requestAnimationFrame(() => map && map.invalidateSize())
-    setTimeout(() => map && map.invalidateSize(), 200)
-
+    /* Container may be zero-sized right after mount (e.g. inside transitions);
+       the observer coalesces resize calls into one per animation frame */
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => {
-        if (map) map.invalidateSize()
+        if (resizeFrame) return
+        resizeFrame = requestAnimationFrame(() => {
+          resizeFrame = 0
+          if (map) map.resize()
+        })
       })
       resizeObserver.observe(mapEl.value)
     }
   } else {
-    map.setView([point.lat, point.lng], 14)
-    if (userMarker) userMarker.setLatLng([point.lat, point.lng])
+    map.jumpTo({ center: [point.lng, point.lat], zoom: 14 })
+    if (userMarker) userMarker.setLngLat([point.lng, point.lat])
   }
+}
+
+function buildPopup(content) {
+  const popup = new maplibregl.Popup({ offset: 12, maxWidth: '300px' })
+  if (typeof content === 'string') {
+    const el = document.createElement('div')
+    el.innerHTML = content
+    popup.setDOMContent(el)
+  } else {
+    popup.setDOMContent(content)
+  }
+  return popup
 }
 
 /* Cyan pulse-style dot for the user; teal dot for facilities */
 function userIcon() {
-  return L.divIcon({
-    className: 'nhm-div-icon',
-    html: '<span class="nhm-user-dot"></span>',
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
-  })
+  const el = document.createElement('span')
+  el.className = 'nhm-user-dot'
+  el.title = 'Your location'
+  return el
 }
 
-function facilityIcon() {
-  return L.divIcon({
-    className: 'nhm-div-icon',
-    html: '<span class="nhm-facility-dot"></span>',
-    iconSize: [14, 14],
-    iconAnchor: [7, 7]
-  })
+function facilityIcon(name) {
+  const el = document.createElement('span')
+  el.className = 'nhm-facility-dot'
+  el.title = name || ''
+  return el
 }
 
-async function loadNearbyFacilities(point, token) {
+/* Resolves to the facility list (or null on failure / stale token).
+   When render is false the caller draws the markers once the map exists. */
+async function loadNearbyFacilities(point, token, render = true) {
   facState.value = 'loading'
   try {
     const list = await fetchNearbyFacilities(point.lat, point.lng, props.radiusMeters)
-    if (token !== loadToken) return
+    if (token !== loadToken) return null
 
     facilities.value = list
-    renderFacilityMarkers(list)
+    if (render) renderFacilityMarkers(list)
     facState.value = list.length > 0 ? 'ready' : 'empty'
     emit('facilities-loaded', list)
+    return list
   } catch (e) {
-    if (token !== loadToken) return
+    if (token !== loadToken) return null
     facState.value = 'error'
     emit('facilities-loaded', [])
+    return null
   }
 }
 
@@ -285,24 +338,30 @@ function renderFacilityMarkers(list) {
   if (!map) return
   clearFacilityMarkers()
 
-  const bounds = []
+  const bounds = new maplibregl.LngLatBounds()
   for (const facility of list) {
-    const marker = L.marker([facility.lat, facility.lng], {
-      icon: facilityIcon(),
-      keyboard: false,
-      title: facility.name
-    }).addTo(map)
-    marker.bindPopup(buildPopupContent(facility))
+    const marker = new maplibregl.Marker({ element: facilityIcon(facility.name), anchor: 'center' })
+      .setLngLat([facility.lng, facility.lat])
+      .setPopup(buildPopup(buildPopupContent(facility)))
+      .addTo(map)
     facilityMarkers.push(marker)
-    bounds.push([facility.lat, facility.lng])
+    bounds.extend([facility.lng, facility.lat])
   }
 
   /* Fit view around user + facilities (capped zoom so markers stay readable) */
-  if (bounds.length > 0) {
+  if (list.length > 0) {
     if (userMarker && resolvedPoint.value) {
-      bounds.push([resolvedPoint.value.lat, resolvedPoint.value.lng])
+      bounds.extend([resolvedPoint.value.lng, resolvedPoint.value.lat])
     }
-    map.fitBounds(L.latLngBounds(bounds).pad(0.2), { maxZoom: 15 })
+    /* Equivalent of Leaflet's bounds.pad(0.2): 20% of the span on each side */
+    const sw = bounds.getSouthWest()
+    const ne = bounds.getNorthEast()
+    const dLng = (ne.lng - sw.lng) * 0.2
+    const dLat = (ne.lat - sw.lat) * 0.2
+    map.fitBounds(
+      [[sw.lng - dLng, sw.lat - dLat], [ne.lng + dLng, ne.lat + dLat]],
+      { maxZoom: 15 }
+    )
   }
 }
 
@@ -371,11 +430,18 @@ function destroyMap() {
     resizeObserver.disconnect()
     resizeObserver = null
   }
+  if (resizeFrame) {
+    cancelAnimationFrame(resizeFrame)
+    resizeFrame = 0
+  }
   clearFacilityMarkers()
+  if (userMarker) {
+    userMarker.remove()
+    userMarker = null
+  }
   if (map) {
     map.remove()
     map = null
-    userMarker = null
   }
 }
 
@@ -554,10 +620,26 @@ onBeforeUnmount(() => {
   text-decoration: underline;
 }
 
-/* ─── Markers (rendered inside Leaflet panes — needs :deep) ─────────────── */
-:deep(.nhm-div-icon) {
-  background: transparent;
-  border: none;
+/* ─── Markers (rendered inside MapLibre canvas container — needs :deep) ─── */
+:deep(.maplibregl-map) {
+  font: inherit;
+}
+
+:deep(.maplibregl-popup-content) {
+  border-radius: 12px;
+  padding: 13px 19px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+  color: #333;
+}
+
+:deep(.maplibregl-popup-close-button) {
+  font-size: 18px;
+  color: #757575;
+}
+
+:deep(.nhm-user-dot),
+:deep(.nhm-facility-dot) {
+  cursor: pointer;
 }
 
 :deep(.nhm-user-dot),
