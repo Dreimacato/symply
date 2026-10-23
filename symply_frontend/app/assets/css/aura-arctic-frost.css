@@ -98,7 +98,7 @@
    above the z-index:0 fixed aura layers. */
 .symply-app-bar {
   position: relative !important;
-  z-index: 0;
+  z-index: 0 !important;
 }
 
 .v-toolbar,
