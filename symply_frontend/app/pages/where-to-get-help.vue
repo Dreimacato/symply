@@ -275,6 +275,7 @@ const DOCTORS = [
   {
     id: 'doctor-gp-1',
     initials: 'GP',
+    country: 'Philippines',
     name: 'Dr. Maria Santos',
     specialty: 'General Practitioner',
     clinic: 'San Fernando City Health Center',
@@ -285,6 +286,7 @@ const DOCTORS = [
   {
     id: 'doctor-gp-2',
     initials: 'GP',
+    country: 'Philippines',
     name: 'Dr. Pedro Navarro',
     specialty: 'General Practitioner',
     clinic: 'Navarro–Mallari Charity Clinic',
@@ -295,6 +297,7 @@ const DOCTORS = [
   {
     id: 'doctor-gp-3',
     initials: 'GP',
+    country: 'Philippines',
     name: 'Dr. Rosa Santos',
     specialty: 'General Practitioner',
     clinic: 'Santos Clinic',
@@ -305,6 +308,7 @@ const DOCTORS = [
   {
     id: 'doctor-im-1',
     initials: 'IM',
+    country: 'Philippines',
     name: 'Dr. Ignacio de la Cruz',
     specialty: 'Internal Medicine',
     clinic: 'Saint Ferdinand Medical Arts Building',
@@ -315,6 +319,7 @@ const DOCTORS = [
   {
     id: 'doctor-im-2',
     initials: 'IM',
+    country: 'Philippines',
     name: 'Dr. Juan Perez',
     specialty: 'Internal Medicine',
     clinic: 'San Fernando City Health Center',
@@ -325,6 +330,7 @@ const DOCTORS = [
   {
     id: 'doctor-im-3',
     initials: 'IM',
+    country: 'Philippines',
     name: 'Dr. Miguel Santos',
     specialty: 'Internal Medicine',
     clinic: 'Santos Clinic',
@@ -335,6 +341,7 @@ const DOCTORS = [
   {
     id: 'doctor-fm-1',
     initials: 'FM',
+    country: 'Philippines',
     name: 'Dr. Consuelo Reyes',
     specialty: 'Family Medicine',
     clinic: 'Saint Ferdinand Medical Arts Building',
@@ -345,6 +352,7 @@ const DOCTORS = [
   {
     id: 'doctor-fm-2',
     initials: 'FM',
+    country: 'Philippines',
     name: 'Dr. Sergio Bautista',
     specialty: 'Family Medicine',
     clinic: 'Navarro–Mallari Charity Clinic',
@@ -355,6 +363,7 @@ const DOCTORS = [
   {
     id: 'doctor-fm-3',
     initials: 'FM',
+    country: 'Philippines',
     name: 'Dr. Lourdes Castro',
     specialty: 'Family Medicine',
     clinic: 'San Fernando City Health Center',
@@ -365,6 +374,7 @@ const DOCTORS = [
   {
     id: 'doctor-pd-1',
     initials: 'PD',
+    country: 'Philippines',
     name: 'Dr. Teresa Cruz',
     specialty: 'Pediatrics',
     clinic: 'Santos Clinic',
@@ -375,6 +385,7 @@ const DOCTORS = [
   {
     id: 'doctor-pd-2',
     initials: 'PD',
+    country: 'Philippines',
     name: 'Dr. Amando Ortega',
     specialty: 'Pediatrics',
     clinic: 'Saint Ferdinand Medical Arts Building',
@@ -385,6 +396,7 @@ const DOCTORS = [
   {
     id: 'doctor-pd-3',
     initials: 'PD',
+    country: 'Philippines',
     name: 'Dr. Felicitas Magsanoc',
     specialty: 'Pediatrics',
     clinic: 'Navarro–Mallari Charity Clinic',
@@ -422,6 +434,15 @@ const doctorArea = computed(() => {
   return parts.slice(0, 2).join(', ')
 })
 
+/* Country extracted from the user's raw location (e.g. "Arayat, Pampanga, Central Luzon, 2012, Philippines" → "Philippines") */
+const doctorCountry = computed(() => {
+  const raw = (userLocation.value || '').trim()
+  if (!raw) return ''
+  let parts = raw.split(',').map((part) => part.trim()).filter(Boolean)
+  parts = parts.filter((part) => !/^\d[\d\s-]*$/.test(part)) /* postal codes */
+  return parts[parts.length - 1] || ''
+})
+
 /* Generic clinic names used once the location is known, so a user in another
    city does not see San Fernando-specific clinics. */
 const CLINIC_TYPES = {
@@ -437,7 +458,13 @@ const localizedDoctors = computed(() => {
   const area = doctorArea.value
   if (!area) return DOCTORS
   const place = area.split(',')[0].trim()
-  return DOCTORS.map((doctor) => ({
+  let filtered = DOCTORS
+  if (doctorCountry.value) {
+    filtered = DOCTORS.filter((doctor) =>
+      doctor.country?.toLowerCase() === doctorCountry.value.toLowerCase()
+    )
+  }
+  return filtered.map((doctor) => ({
     ...doctor,
     clinic: `${place} ${CLINIC_TYPES[doctor.clinic] || doctor.clinic}`,
     address: area,
