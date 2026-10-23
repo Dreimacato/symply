@@ -155,7 +155,9 @@ async function load() {
   if (!address) {
     geoState.value = 'idle'
     facState.value = 'idle'
+    facilities.value = []
     destroyMap()
+    emit('facilities-loaded', [])
     return
   }
 
@@ -171,19 +173,21 @@ async function load() {
   } else {
     try {
       point = await geocodeAddress(address)
-    } catch (e) {
-      if (token !== loadToken) return
-      geoState.value = 'error'
-      return
-    }
+     } catch (e) {
+       if (token !== loadToken) return
+       geoState.value = 'error'
+       emit('facilities-loaded', [])
+       return
+     }
     if (token !== loadToken) return
   }
 
-  if (!point) {
-    geoState.value = 'not-found'
-    destroyMap()
-    return
-  }
+   if (!point) {
+     geoState.value = 'not-found'
+     destroyMap()
+     emit('facilities-loaded', [])
+     return
+   }
 
   geoState.value = 'ready'
   resolvedPoint.value = point
