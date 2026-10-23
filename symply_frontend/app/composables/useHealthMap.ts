@@ -8,7 +8,7 @@ import { ref } from 'vue'
  * re-issue identical requests (also respects Nominatim's 1 req/s policy).
  * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-export const NEARBY_RADIUS_METERS = 5000
+export const NEARBY_RADIUS_METERS = 3000 /* 3 km — smaller radius = faster Overpass query + fewer markers */
 
 /* Max facilities rendered on the map â€” keeps large cities usable */
 const NEARBY_RESULT_LIMIT = 60

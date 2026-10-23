@@ -342,7 +342,7 @@ function goToWhereToGetHelp() {
       const { geocodeAddress, fetchNearbyFacilities } = useHealthMap()
       geocodeAddress(addr)
         .then((geo) => {
-          if (geo) return fetchNearbyFacilities(geo.lat, geo.lng, 5000).catch(() => {})
+          if (geo) return fetchNearbyFacilities(geo.lat, geo.lng, 3000).catch(() => {})
           return null
         })
         .catch(() => {})
