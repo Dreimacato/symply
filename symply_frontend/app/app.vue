@@ -99,14 +99,6 @@ body {
   mix-blend-mode: normal !important;
 }
 
-/* Neutralize aura frost layers in dark mode too - clean solid dark bg */
-:root[data-theme='dark'] .aura-layer-1,
-:root[data-theme='dark'] .aura-layer-2 {
-  background: transparent !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-}
-
 /* =========================================
    Typography scale
 ========================================= */
