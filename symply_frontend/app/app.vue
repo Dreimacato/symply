@@ -37,7 +37,7 @@ const transitionName = computed(() => {
   --symply-primary-dark: #0891B2;
   --symply-primary-light: rgba(6, 182, 212, 0.1);
   --symply-primary-bg: #0B4F8F;
-  --symply-bg-app: #FFFFFF;
+  --symply-bg-app: #F4F7FB;
   --symply-card-bg: #FFFFFF;
   --symply-footer-bg: #edf7f6;
   --symply-border: #E2E8F0;
@@ -83,6 +83,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--symply-bg-app);
   color: var(--symply-text-primary);
+}
+
+/* Solid clinical off-white for light mode only */
+:root:not([data-theme='dark']) html,
+:root:not([data-theme='dark']) body {
+  background-color: #F4F7FB !important;
+}
+
+/* Neutralize aura frost layers in light mode only */
+:root:not([data-theme='dark']) .aura-layer-1,
+:root:not([data-theme='dark']) .aura-layer-2 {
+  background: transparent !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
 }
 
 /* =========================================
