@@ -19,7 +19,7 @@
    box is shorter than the viewport (html background wins the propagation). */
 :root:not([data-theme='dark']) body,
 :root:not([data-theme='dark']) html {
-  background-color: #faf8f2;
+  background-color: #FFFFFF;
 }
 
 :root:not([data-theme='dark']) .symply-main,

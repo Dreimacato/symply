@@ -37,7 +37,7 @@ const transitionName = computed(() => {
   --symply-primary-dark: #0891B2;
   --symply-primary-light: rgba(6, 182, 212, 0.1);
   --symply-primary-bg: #0B4F8F;
-  --symply-bg-app: #FAFBFC;
+  --symply-bg-app: #FFFFFF;
   --symply-card-bg: #FFFFFF;
   --symply-footer-bg: #edf7f6;
   --symply-border: #E2E8F0;

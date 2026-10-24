@@ -148,7 +148,6 @@
       </v-container>
     </v-footer>
   </v-app>
-  <Crosshair />
 </template>
 
 <script setup>
